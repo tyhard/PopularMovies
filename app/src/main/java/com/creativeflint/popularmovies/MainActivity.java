@@ -19,19 +19,10 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         FragmentManager fragmentManager = getFragmentManager();
-        Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
 
-        fragment = ItemFragment.newInstance(null, null);
+        Fragment fragment = ItemFragment.newInstance(null, null);
         fragmentManager.beginTransaction().add(R.id.main_fragment_container, fragment).commit();
 
-//        String[] myStringArray = {"string1", "string2", "string3"};
-//
-//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-//                android.R.layout.simple_list_item_1, myStringArray);
-
-//        GridView gridView = (GridView) findViewById(R.id.gridView);
-//        gridView.setNumColumns(2);
-//        gridView.setAdapter(adapter);
     }
 
     @Override

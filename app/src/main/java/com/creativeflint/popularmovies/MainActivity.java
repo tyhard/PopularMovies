@@ -7,11 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
 
 public class MainActivity extends AppCompatActivity
-        implements ItemFragment.OnFragmentInteractionListener{
+        implements MoviePosterFragment.OnFragmentInteractionListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +18,7 @@ public class MainActivity extends AppCompatActivity
 
         FragmentManager fragmentManager = getFragmentManager();
 
-        Fragment fragment = ItemFragment.newInstance(null, null);
+        Fragment fragment = MoviePosterFragment.newInstance(null, null);
         fragmentManager.beginTransaction().add(R.id.main_fragment_container, fragment).commit();
 
     }

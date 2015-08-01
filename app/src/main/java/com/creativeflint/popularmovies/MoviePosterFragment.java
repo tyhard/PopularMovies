@@ -191,17 +191,17 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
             String moviesJson = null;
 
-            Uri builtUri = Uri.parse("http://api.themoviedb.org").buildUpon()
+            Uri movieServiceUri = Uri.parse("http://api.themoviedb.org").buildUpon()
                     .appendPath("3")
                     .appendPath("discover")
                     .appendPath("movie")
-                    .appendQueryParameter("sort_by", "popularity.asc")
+                    .appendQueryParameter("sort_by", "popularity.desc")
                     .appendQueryParameter("page", "10") //TODO: limit to 10 pages of results?
                     .build();
 
             try{
 
-                URL url = new URL(builtUri.toString());
+                URL url = new URL(movieServiceUri.toString());
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -248,26 +248,29 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
         private List<Movie> getMoviesFromJson(String json) throws JSONException{
             List<Movie> movieList = new ArrayList<>();
-//            JSONObject envelope = new JSONObject(json);
-//            JSONArray jsonMovieList = envelope.getJSONArray("results");
-//            SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd");
-//
-//            for (int i = 0; i < jsonMovieList.length(); i++){
-//                JSONObject jsonMovie = jsonMovieList.getJSONObject(i);
-//                Movie movie = new Movie();
-//                movie.setTitle(jsonMovie.getString("title"));
-//                movie.setOverview(jsonMovie.getString("overview"));
-//                movie.setPosterPath(jsonMovie.getString("poster_path"));
-//                movie.setUserRating(jsonMovie.getDouble("vote_average"));
-//                String dateStr = jsonMovie.getString("release_date");
-//                try{
-//                    movie.setReleaseDate(dateFormat.parse(dateStr));
-//                } catch (ParseException pe) {
-//                    Log.e(this.getClass().getName(), "Unable to parse date: " + dateStr);
-//                }
-//
-//                movieList.add(movie);
-//            }
+            JSONObject envelope = new JSONObject(json);
+            JSONArray jsonMovieList = envelope.getJSONArray("results");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            for (int i = 0; i < jsonMovieList.length(); i++){
+                JSONObject jsonMovie = jsonMovieList.getJSONObject(i);
+                Movie movie = new Movie();
+                movie.setTitle(jsonMovie.getString("title"));
+                movie.setOverview(jsonMovie.getString("overview"));
+                movie.setPosterPath(jsonMovie.getString("poster_path"));
+                movie.setUserRating(jsonMovie.getDouble("vote_average"));
+                String dateStr = jsonMovie.getString("release_date");
+                try{
+                    if (dateStr != null){
+                        movie.setReleaseDate(dateFormat.parse(dateStr));
+                    }
+                } catch (ParseException pe) {
+                    Log.e(this.getClass().getName(), "Unable to parse date: " + dateStr);
+                }
+
+                movieList.add(movie);
+            }
+            Log.d(this.getClass().getName(), "movieList size: " + movieList.size());
             return movieList;
         }
     }

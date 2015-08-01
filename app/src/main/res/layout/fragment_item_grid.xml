@@ -5,7 +5,7 @@
     tools:context="com.creativeflint.popularmovies.MoviePosterFragment">
 
     <GridView android:id="@android:id/list" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:numColumns="2" />
+        android:layout_height="match_parent" android:numColumns="auto_fit" />
 
     <TextView android:id="@android:id/empty" android:layout_width="match_parent"
         android:layout_height="match_parent" android:gravity="center" />

@@ -19,6 +19,8 @@ public class Movie {
     private double userRating;
     private Date releaseDate;
 
+    private final static String posterImageRootUrl = "http://image.tmdb.org/t/p/w185";
+
     public String getTitle() {
         return title;
     }
@@ -32,7 +34,12 @@ public class Movie {
     }
 
     public void setPosterPath(String posterPath) {
-        this.posterPath = posterPath;
+        if (posterPath != null && posterPath.startsWith("/")){
+            this.posterPath = posterImageRootUrl + posterPath;
+        } else {
+            this.posterPath = posterPath;
+        }
+
     }
 
     public String getOverview() {

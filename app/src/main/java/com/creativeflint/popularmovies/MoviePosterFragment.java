@@ -12,12 +12,14 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.creativeflint.popularmovies.dummy.DummyContent;
 import com.creativeflint.popularmovies.dummy.MovieItems;
 import com.creativeflint.popularmovies.model.Movie;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,6 +51,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = "MoviePosterFragment";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -96,8 +99,9 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         }
 
         // TODO: Change Adapter to display your content
-        mAdapter = new ArrayAdapter<Movie>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, MovieItems.MOVIES);
+//        mAdapter = new ArrayAdapter<Movie>(getActivity(),
+//                android.R.layout.simple_list_item_1, android.R.id.text1, MovieItems.MOVIES);
+        mAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
     }
 
     @Override
@@ -197,6 +201,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     .appendPath("movie")
                     .appendQueryParameter("sort_by", "popularity.desc")
                     .appendQueryParameter("page", "10") //TODO: limit to 10 pages of results?
+
                     .build();
 
             try{
@@ -272,6 +277,30 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             }
             Log.d(this.getClass().getName(), "movieList size: " + movieList.size());
             return movieList;
+        }
+    }
+
+    private class MoviePosterAdapter extends ArrayAdapter<Movie>{
+
+        public MoviePosterAdapter(ArrayList<Movie> movies){
+            super(getActivity(), 0, movies);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent){
+            if (convertView == null){
+                convertView = getActivity().getLayoutInflater().inflate(
+                        R.layout.movie_poster, parent, false);
+            }
+
+            ImageView imageView = (ImageView) convertView.findViewById(R.id.movie_poster_image_view);
+//            imageView.setImageResource(R.drawable.abc_btn_check_material);
+
+            Movie movie = getItem(position);
+            Log.d(TAG, "Poster URL: " + movie.getPosterPath());
+            Picasso.with(getActivity().getApplicationContext()).load(movie.getPosterPath()).into(imageView);
+//            posterDownloadThread.queuePoster(imageView, movie.getPosterPath());
+            return convertView;
         }
     }
 

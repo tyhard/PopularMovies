@@ -17,7 +17,6 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.creativeflint.popularmovies.dummy.DummyContent;
-import com.creativeflint.popularmovies.dummy.MovieItems;
 import com.creativeflint.popularmovies.model.Movie;
 import com.squareup.picasso.Picasso;
 
@@ -91,7 +90,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FetchMoviesTask task = new FetchMoviesTask();
-        task.execute();
+        task.execute(SortOption.POPULARITY);
 
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -115,6 +114,24 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
+
+        mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                if (scrollState == SCROLL_STATE_IDLE) {
+                    if (view.getLastVisiblePosition() >= view.getCount() - 1) {
+                        //TODO: Get the next page and proper sort option.
+                        FetchMoviesTask fetchMovies = new FetchMoviesTask();
+                        fetchMovies.execute(SortOption.USER_RATING);
+                    }
+                }
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            }
+        });
 
         return view;
     }
@@ -174,7 +191,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         public void onFragmentInteraction(String id);
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
+    private class FetchMoviesTask extends AsyncTask<SortOption, Void, List<Movie>> {
 
         FetchMoviesTask(){
         }
@@ -182,26 +199,28 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         @Override
         protected void onPostExecute(List<Movie> movieList) {
             super.onPostExecute(movieList);
-            mAdapter.clear();
-            for (Movie m : movieList){
-                mAdapter.add(m);
+            if (mAdapter.isEmpty()){
+                mAdapter.clear();
             }
+            mAdapter.addAll(movieList);
         }
 
         @Override
-        protected List<Movie> doInBackground(String... param) {
+        protected List<Movie> doInBackground(SortOption... sortOption) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
             String moviesJson = null;
 
+            SortOption sort = sortOption[0] != null ? sortOption[0] : SortOption.POPULARITY;
+
+            //TODO: add TMDb attribution to "About" or "Credits"
             Uri movieServiceUri = Uri.parse("http://api.themoviedb.org").buildUpon()
                     .appendPath("3")
                     .appendPath("discover")
                     .appendPath("movie")
-                    .appendQueryParameter("sort_by", "popularity.desc")
-                    .appendQueryParameter("page", "10") //TODO: limit to 10 pages of results?
-
+                    .appendQueryParameter("sort_by", sort.getOptionValue())
+                    .appendQueryParameter("api_key", "") //TODO: Add API key here.
                     .build();
 
             try{
@@ -293,15 +312,16 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                         R.layout.movie_poster, parent, false);
             }
 
-            ImageView imageView = (ImageView) convertView.findViewById(R.id.movie_poster_image_view);
-//            imageView.setImageResource(R.drawable.abc_btn_check_material);
-
+            ImageView posterView = (ImageView) convertView.findViewById(R.id.movie_poster_image_view);
             Movie movie = getItem(position);
             Log.d(TAG, "Poster URL: " + movie.getPosterPath());
-            Picasso.with(getActivity().getApplicationContext()).load(movie.getPosterPath()).into(imageView);
-//            posterDownloadThread.queuePoster(imageView, movie.getPosterPath());
+            Picasso.with(getActivity().getApplicationContext())
+                    .load(movie.getPosterPath())
+                    .placeholder(R.drawable.spinner_rotate) //TODO: fix spinner
+                    .into(posterView);
             return convertView;
         }
+
     }
 
 }

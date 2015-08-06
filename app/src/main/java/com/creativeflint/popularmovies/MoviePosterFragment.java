@@ -16,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.creativeflint.popularmovies.dummy.DummyContent;
 import com.creativeflint.popularmovies.model.Movie;
 import com.squareup.picasso.Picasso;
 
@@ -41,7 +40,7 @@ import java.util.List;
  * Large screen devices (such as tablets) are supported by replacing the ListView
  * with a GridView.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link OnMovieSelectedListener}
  * interface.
  */
 public class MoviePosterFragment extends Fragment implements AbsListView.OnItemClickListener {
@@ -56,7 +55,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private OnMovieSelectedListener mListener;
 
     /**
      * The fragment's ListView/GridView.
@@ -140,10 +139,10 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (OnMovieSelectedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnMovieSelectedListener");
         }
     }
 
@@ -159,7 +158,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
             //TODO-TY: change this to movies
-            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
+            mListener.onMovieSelected(position);
         }
     }
 
@@ -176,19 +175,12 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         }
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+    public Movie getSelectedMovie(int position){
+        return (Movie) mAdapter.getItem(position);
+    }
+
+    public interface OnMovieSelectedListener {
+        public void onMovieSelected(int position);
     }
 
     private class FetchMoviesTask extends AsyncTask<SortOption, Void, List<Movie>> {
@@ -309,7 +301,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         public View getView(int position, View convertView, ViewGroup parent){
             if (convertView == null){
                 convertView = getActivity().getLayoutInflater().inflate(
-                        R.layout.movie_poster, parent, false);
+                        R.layout.fragment_movie_poster, parent, false);
             }
 
             ImageView posterView = (ImageView) convertView.findViewById(R.id.movie_poster_image_view);

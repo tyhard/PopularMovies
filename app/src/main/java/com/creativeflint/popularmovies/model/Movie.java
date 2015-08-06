@@ -1,11 +1,12 @@
 package com.creativeflint.popularmovies.model;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by ty on 7/23/15.
  */
-public class Movie {
+public class Movie implements Serializable{
 
     /*original title
     movie poster image thumbnail

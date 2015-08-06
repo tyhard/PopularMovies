@@ -3,13 +3,16 @@ package com.creativeflint.popularmovies;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.creativeflint.popularmovies.model.Movie;
+
 public class MainActivity extends AppCompatActivity
-        implements MoviePosterFragment.OnFragmentInteractionListener{
+        implements MoviePosterFragment.OnMovieSelectedListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +49,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onFragmentInteraction(String id) {
+    public void onMovieSelected(int position) {
+        MoviePosterFragment posterFragment = (MoviePosterFragment) getFragmentManager()
+                .findFragmentById(R.id.main_fragment_container);
+        Movie selectedMovie = posterFragment.getSelectedMovie(position);
 
+
+        MovieDetailFragment detailFragment = MovieDetailFragment.newInstance(selectedMovie);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.main_fragment_container, detailFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 }

@@ -1,44 +1,39 @@
 package com.creativeflint.popularmovies;
 
+import android.media.Rating;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RatingBar;
+import android.widget.TextView;
 
 import com.creativeflint.popularmovies.model.Movie;
+import com.squareup.picasso.Picasso;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link OnMovieSelectedListener} interface
- * to handle interaction events.
- * Use the {@link MovieDetailFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class MovieDetailFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "MOVIE";
+    private static final String MOVIE_PARAM = "MOVIE";
 
     // TODO: Rename and change types of parameters
     private Movie mMovie;
 
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment MovieDetailFragment.
-     */
+
     // TODO: Rename and change types and number of parameters
     public static MovieDetailFragment newInstance(Movie movie) {
         MovieDetailFragment fragment = new MovieDetailFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_PARAM1, movie);
+        args.putSerializable(MOVIE_PARAM, movie);
         fragment.setArguments(args);
         return fragment;
     }
@@ -51,15 +46,31 @@ public class MovieDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mMovie = (Movie) getArguments().getSerializable(ARG_PARAM1);
+            mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_movie_detail, container, false);
+        View detailView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+        TextView title = (TextView) detailView.findViewById(R.id.movie_title_text);
+        title.setText(mMovie.getTitle());
+        TextView releaseDate = (TextView) detailView.findViewById(R.id.release_date_text);
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
+        releaseDate.append(dateFormat.format(mMovie.getReleaseDate()));
+        RatingBar ratingBar = (RatingBar) detailView.findViewById(R.id.user_rating_bar);
+        ratingBar.setMax(5);
+        ratingBar.setRating(new Double(mMovie.getUserRating()).floatValue() / 2);
+        TextView plotSummary = (TextView) detailView.findViewById(R.id.plot_summary_text);
+        plotSummary.setText(mMovie.getOverview());
+
+        ImageView moviePoster = (ImageView) detailView.findViewById(R.id.movie_poster_view);
+        Picasso.with(getActivity().getApplicationContext())
+                .load(mMovie.getPosterPath())
+                .placeholder(R.drawable.spinner_rotate) //TODO: fix spinner
+                .into(moviePoster);
+        return detailView;
     }
 
 

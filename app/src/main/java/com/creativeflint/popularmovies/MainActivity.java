@@ -22,8 +22,10 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getFragmentManager();
 
         Fragment fragment = MoviePosterFragment.newInstance(null, null);
-        fragmentManager.beginTransaction().add(R.id.main_fragment_container, fragment).commit();
-
+        fragmentManager.beginTransaction()
+                .addToBackStack(null)
+                .add(R.id.main_fragment_container, fragment)
+                .commit();
     }
 
     @Override

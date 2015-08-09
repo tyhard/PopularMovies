@@ -128,7 +128,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             }
 
             @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            public void onScroll(AbsListView view, int firstVisibleItem,
+                                 int visibleItemCount, int totalItemCount) {
             }
         });
 

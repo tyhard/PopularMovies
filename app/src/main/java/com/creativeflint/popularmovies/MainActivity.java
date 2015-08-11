@@ -4,8 +4,11 @@ package com.creativeflint.popularmovies;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -13,6 +16,8 @@ import com.creativeflint.popularmovies.model.Movie;
 
 public class MainActivity extends AppCompatActivity
         implements MoviePosterFragment.OnMovieSelectedListener{
+
+    public static final String TAG = "MovieActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +51,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_settings) {
             return true;
         }
-
+        Log.d(TAG, "Action bar null?" + (getActionBar() == null));
         return super.onOptionsItemSelected(item);
     }
 

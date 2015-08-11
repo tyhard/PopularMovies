@@ -1,12 +1,17 @@
 package com.creativeflint.popularmovies;
 
+import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -14,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.creativeflint.popularmovies.model.Movie;
@@ -47,13 +53,16 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_SORT_OPTION = "sortOption";
     private static final String ARG_PARAM2 = "param2";
     private static final String TAG = "MoviePosterFragment";
+    private static final String SORT_POPULAR_PARAM = "popularity.desc";
+    private static final String SORT_RATING_PARAM = "vote_average.desc";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
+    private String mSortOption;
     private String mParam2;
+    private int mCurrentPage = 1;
 
     private OnMovieSelectedListener mListener;
 
@@ -62,17 +71,15 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
      */
     private AbsListView mListView;
 
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
-    private ArrayAdapter mAdapter;
+
+    private ArrayAdapter mMovieAdapter;
+    private ArrayAdapter<CharSequence> mSortSpinnerAdapter;
 
     // TODO: Rename and change types of parameters
-    public static MoviePosterFragment newInstance(String param1, String param2) {
+    public static MoviePosterFragment newInstance(String sortOption, String param2) {
         MoviePosterFragment fragment = new MoviePosterFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_SORT_OPTION, sortOption);
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
@@ -88,28 +95,62 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FetchMoviesTask task = new FetchMoviesTask();
-        task.execute(SortOption.POPULARITY);
+        setHasOptionsMenu(true);
+        SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
 
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
+            mSortOption = getArguments().getString(ARG_SORT_OPTION);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        if (mSortOption == null){
+            mSortOption = settings.getString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
+        }
 
-        // TODO: Change Adapter to display your content
-//        mAdapter = new ArrayAdapter<Movie>(getActivity(),
-//                android.R.layout.simple_list_item_1, android.R.id.text1, MovieItems.MOVIES);
-        mAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
+        FetchMoviesTask task = new FetchMoviesTask();
+        task.execute(mSortOption);
+        mMovieAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_item, container, false);
+        View spinnerView = inflater.inflate(R.layout.spinner_layout, null);
 
-        // Set the adapter
+        Spinner sortSpinner = (Spinner) spinnerView.findViewById(R.id.sort_spinner);
+        mSortSpinnerAdapter = ArrayAdapter.createFromResource(getActivity().getApplicationContext(),
+                R.array.sort_options_array,android.R.layout.simple_spinner_item);
+        mSortSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sortSpinner.setAdapter(mSortSpinnerAdapter);
+
+        sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                SharedPreferences.Editor prefEditor = getActivity()
+                        .getPreferences(Context.MODE_PRIVATE).edit();
+                String selectedItem = parent.getSelectedItem().toString();
+                if (selectedItem.equalsIgnoreCase("Most Popular")) {
+                    prefEditor.putString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
+                    mSortOption = SORT_POPULAR_PARAM;
+                } else {
+                    prefEditor.putString(ARG_SORT_OPTION, SORT_RATING_PARAM);
+                    mSortOption = SORT_RATING_PARAM;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+//        ActionBar actionBar = getActivity().getActionBar();
+//        getActivity().getActionBar().setCustomView(sortSpinner);
+
+                // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        ((AdapterView<ListAdapter>) mListView).setAdapter(mMovieAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
@@ -121,7 +162,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     if (view.getLastVisiblePosition() >= view.getCount() - 1) {
                         //TODO: Get the next page and proper sort option.
                         FetchMoviesTask fetchMovies = new FetchMoviesTask();
-                        fetchMovies.execute(SortOption.USER_RATING);
+                        fetchMovies.execute(mSortOption);
                     }
                 }
 
@@ -158,10 +199,10 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            //TODO-TY: change this to movies
             mListener.onMovieSelected(position);
         }
     }
+
 
     /**
      * The default content for this Fragment has a TextView that is shown when
@@ -177,14 +218,14 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     }
 
     public Movie getSelectedMovie(int position){
-        return (Movie) mAdapter.getItem(position);
+        return (Movie) mMovieAdapter.getItem(position);
     }
 
     public interface OnMovieSelectedListener {
         public void onMovieSelected(int position);
     }
 
-    private class FetchMoviesTask extends AsyncTask<SortOption, Void, List<Movie>> {
+    private class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
 
         FetchMoviesTask(){
         }
@@ -192,27 +233,33 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         @Override
         protected void onPostExecute(List<Movie> movieList) {
             super.onPostExecute(movieList);
-            if (mAdapter.isEmpty()){
-                mAdapter.clear();
+            if (mMovieAdapter == null){
+                movieList = new ArrayList<Movie>();
             }
-            mAdapter.addAll(movieList);
+            mMovieAdapter.addAll(movieList);
+            mCurrentPage++;
         }
 
         @Override
-        protected List<Movie> doInBackground(SortOption... sortOption) {
+        protected List<Movie> doInBackground(String... queryParams) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
             String moviesJson = null;
 
-            SortOption sort = sortOption[0] != null ? sortOption[0] : SortOption.POPULARITY;
+//            SortOption sort = sortOption[0] != null ? sortOption[0] : SortOption.POPULARITY;
+            String sort = null;
+            if (queryParams != null && queryParams.length > 0){
+                sort = queryParams[0];
+            }
 
             //TODO: add TMDb attribution to "About" or "Credits"
             Uri movieServiceUri = Uri.parse("http://api.themoviedb.org").buildUpon()
                     .appendPath("3")
                     .appendPath("discover")
                     .appendPath("movie")
-                    .appendQueryParameter("sort_by", sort.getOptionValue())
+                    .appendQueryParameter("sort_by", sort)
+                    .appendQueryParameter("page", Integer.toString(mCurrentPage))
                     .appendQueryParameter("api_key", "") //TODO: Add API key here.
                     .build();
 
@@ -316,5 +363,9 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         }
 
     }
+
+
+
+
 
 }

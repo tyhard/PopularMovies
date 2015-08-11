@@ -5,16 +5,17 @@
     tools:context="com.creativeflint.popularmovies.MoviePosterFragment"
     android:id="@+id/grid_frame">
 
-    <GridView android:id="@android:id/list" android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <GridView android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:horizontalSpacing="0dp"
+        android:verticalSpacing="0dp"
+        android:clickable="false"
         android:numColumns="auto_fit"
-        android:columnWidth="100dp"
-        android:scrollingCache="false"
-        android:padding="8dp"
-        android:minHeight="280dp"
-        android:verticalSpacing="8dp"
-        android:stretchMode="columnWidth"
-        android:gravity="center" />
+        android:columnWidth="90dp"
+        android:stretchMode="columnWidth" />
 
     <TextView android:id="@android:id/empty" android:layout_width="match_parent"
         android:layout_height="match_parent" android:gravity="center" />

@@ -6,4 +6,9 @@
 
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="sort_options_array">
+        <item>Most Popular</item>
+        <item>Highest Rated</item>
+    </string-array>
 </resources>

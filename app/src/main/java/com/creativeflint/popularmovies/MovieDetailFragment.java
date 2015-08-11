@@ -3,6 +3,7 @@ package com.creativeflint.popularmovies;
 import android.media.Rating;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,7 @@ public class MovieDetailFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String MOVIE_PARAM = "MOVIE";
+    private static final String TAG = "MovieDetailFragment";
 
     // TODO: Rename and change types of parameters
     private Movie mMovie;
@@ -60,8 +62,11 @@ public class MovieDetailFragment extends Fragment {
         DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
         releaseDate.append(dateFormat.format(mMovie.getReleaseDate()));
         RatingBar ratingBar = (RatingBar) detailView.findViewById(R.id.user_rating_bar);
-        ratingBar.setMax(5);
-        ratingBar.setRating(new Double(mMovie.getUserRating()).floatValue() / 2);
+        ratingBar.setMax(10);
+        ratingBar.setStepSize(.25F);
+        float rating = new Double(mMovie.getUserRating()).floatValue();
+        ratingBar.setRating(rating);
+        Log.d(TAG, "User rating: " + rating);
         TextView plotSummary = (TextView) detailView.findViewById(R.id.plot_summary_text);
         plotSummary.setText(mMovie.getOverview());
 

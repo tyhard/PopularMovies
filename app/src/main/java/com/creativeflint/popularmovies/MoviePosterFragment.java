@@ -11,7 +11,7 @@ import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -95,7 +95,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
 
         if (getArguments() != null) {
@@ -109,46 +108,16 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         FetchMoviesTask task = new FetchMoviesTask();
         task.execute(mSortOption);
         mMovieAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
-
+        setHasOptionsMenu(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_item, container, false);
-        View spinnerView = inflater.inflate(R.layout.spinner_layout, null);
 
-        Spinner sortSpinner = (Spinner) spinnerView.findViewById(R.id.sort_spinner);
-        mSortSpinnerAdapter = ArrayAdapter.createFromResource(getActivity().getApplicationContext(),
-                R.array.sort_options_array,android.R.layout.simple_spinner_item);
-        mSortSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sortSpinner.setAdapter(mSortSpinnerAdapter);
 
-        sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                SharedPreferences.Editor prefEditor = getActivity()
-                        .getPreferences(Context.MODE_PRIVATE).edit();
-                String selectedItem = parent.getSelectedItem().toString();
-                if (selectedItem.equalsIgnoreCase("Most Popular")) {
-                    prefEditor.putString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
-                    mSortOption = SORT_POPULAR_PARAM;
-                } else {
-                    prefEditor.putString(ARG_SORT_OPTION, SORT_RATING_PARAM);
-                    mSortOption = SORT_RATING_PARAM;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-//        ActionBar actionBar = getActivity().getActionBar();
-//        getActivity().getActionBar().setCustomView(sortSpinner);
-
-                // Set the adapter
+        // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         ((AdapterView<ListAdapter>) mListView).setAdapter(mMovieAdapter);
 
@@ -361,6 +330,14 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     .into(posterView);
             return convertView;
         }
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.add("Most Popular").setCheckable(true);
+        menu.add("Highest Rated").setCheckable(true).setChecked(true);
 
     }
 

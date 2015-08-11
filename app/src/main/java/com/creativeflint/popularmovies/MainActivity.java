@@ -1,6 +1,7 @@
 package com.creativeflint.popularmovies;
 
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -14,7 +15,7 @@ import android.view.MenuItem;
 
 import com.creativeflint.popularmovies.model.Movie;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends Activity
         implements MoviePosterFragment.OnMovieSelectedListener{
 
     public static final String TAG = "MovieActivity";
@@ -49,9 +50,10 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Log.d(TAG, "Action bar null?" + (getActionBar() == null));
             return true;
         }
-        Log.d(TAG, "Action bar null?" + (getActionBar() == null));
+
         return super.onOptionsItemSelected(item);
     }
 

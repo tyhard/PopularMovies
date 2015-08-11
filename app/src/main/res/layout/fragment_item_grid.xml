@@ -14,7 +14,7 @@
         android:verticalSpacing="0dp"
         android:clickable="false"
         android:numColumns="auto_fit"
-        android:columnWidth="90dp"
+        android:columnWidth="110dp"
         android:stretchMode="columnWidth" />
 
     <TextView android:id="@android:id/empty" android:layout_width="match_parent"

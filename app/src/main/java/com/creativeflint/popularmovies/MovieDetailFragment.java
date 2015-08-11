@@ -64,7 +64,7 @@ public class MovieDetailFragment extends Fragment {
         RatingBar ratingBar = (RatingBar) detailView.findViewById(R.id.user_rating_bar);
         ratingBar.setMax(10);
         ratingBar.setStepSize(.25F);
-        float rating = new Double(mMovie.getUserRating()).floatValue();
+        float rating = Double.valueOf(mMovie.getUserRating()).floatValue();
         ratingBar.setRating(rating);
         Log.d(TAG, "User rating: " + rating);
         TextView plotSummary = (TextView) detailView.findViewById(R.id.plot_summary_text);

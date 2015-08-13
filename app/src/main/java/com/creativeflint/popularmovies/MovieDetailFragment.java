@@ -50,6 +50,7 @@ public class MovieDetailFragment extends Fragment {
         if (getArguments() != null) {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
+        getActivity().getActionBar().setDisplayHomeAsUpEnabled(true); //TODO: Implement
     }
 
     @Override

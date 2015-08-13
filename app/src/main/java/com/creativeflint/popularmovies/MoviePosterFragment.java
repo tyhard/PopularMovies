@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -334,15 +335,46 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
-        super.onCreateOptionsMenu(menu, inflater);
-        menu.add("Most Popular").setCheckable(true);
-        menu.add("Highest Rated").setCheckable(true).setChecked(true);
+    public void onCreateOptionsMenu(final Menu menu, MenuInflater inflater){
+//        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_posters, menu);
+        MenuItem item = menu.findItem(R.id.sort_spinner);
+        Spinner sortSpinner = (Spinner) item.getActionView();
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                getActivity().getApplicationContext(), R.array.sort_options_array,
+                android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sortSpinner.setAdapter(adapter);
+        sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {//TODO: Use constants
+                    if(mSortOption != SORT_POPULAR_PARAM){
+                        mSortOption = SORT_POPULAR_PARAM;
+                        mMovieAdapter.clear();
+                        mCurrentPage = 1;
+                        FetchMoviesTask task = new FetchMoviesTask();
+                        task.execute(mSortOption);
+                    }
+                } else {
+                    if (position ==1){
+                        if (mSortOption != SORT_RATING_PARAM){
+                            mSortOption = SORT_RATING_PARAM;
+                            mMovieAdapter.clear();
+                            mCurrentPage = 1;
+                            FetchMoviesTask task = new FetchMoviesTask();
+                            task.execute(mSortOption);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
     }
-
-
-
-
 
 }

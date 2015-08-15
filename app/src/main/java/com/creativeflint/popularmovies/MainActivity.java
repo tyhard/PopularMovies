@@ -7,7 +7,6 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -20,18 +19,29 @@ public class MainActivity extends Activity
 
     public static final String TAG = "MovieActivity";
 
+    private MovieDetailFragment movieDetailFragment;
+    private MoviePosterFragment moviePosterFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "Entered on create");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         FragmentManager fragmentManager = getFragmentManager();
+        Log.d(TAG, "init detailFragment in onCreate");
+        movieDetailFragment = (MovieDetailFragment) fragmentManager.findFragmentByTag("data");
+        Log.d(TAG, "movieDetailFragment: " + movieDetailFragment);
 
-        Fragment fragment = MoviePosterFragment.newInstance(null, null);
-        fragmentManager.beginTransaction()
-                .addToBackStack(null)
-                .add(R.id.main_fragment_container, fragment)
-                .commit();
+        if (movieDetailFragment == null) {
+            moviePosterFragment = MoviePosterFragment.newInstance(null, null);
+            fragmentManager.beginTransaction()
+//                .addToBackStack(null)
+                    .replace(R.id.main_fragment_container, moviePosterFragment, "posters")
+                    .commit();
+        }
+
+
     }
 
     @Override
@@ -59,15 +69,19 @@ public class MainActivity extends Activity
 
     @Override
     public void onMovieSelected(int position) {
-        MoviePosterFragment posterFragment = (MoviePosterFragment) getFragmentManager()
-                .findFragmentById(R.id.main_fragment_container);
-        Movie selectedMovie = posterFragment.getSelectedMovie(position);
+//        MoviePosterFragment posterFragment = (MoviePosterFragment) getFragmentManager()
+//               .findFragmentById(R.id.main_fragment_container);
+        moviePosterFragment = (MoviePosterFragment) getFragmentManager().findFragmentByTag("posters");
+        Movie selectedMovie = moviePosterFragment.getSelectedMovie(position);
 
 
-        MovieDetailFragment detailFragment = MovieDetailFragment.newInstance(selectedMovie);
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.main_fragment_container, detailFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        movieDetailFragment = MovieDetailFragment.newInstance(selectedMovie);
+
+        getFragmentManager().beginTransaction()
+            .replace(R.id.main_fragment_container, movieDetailFragment, "data")
+            .addToBackStack(null)
+            .commit();
     }
+
+
 }

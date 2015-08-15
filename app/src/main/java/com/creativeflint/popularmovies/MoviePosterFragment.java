@@ -95,7 +95,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);//            Fragment fragment = MoviePosterFragment.newInstance(null, null);
         SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
 
         if (getArguments() != null) {
@@ -110,6 +110,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         task.execute(mSortOption);
         mMovieAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
         setHasOptionsMenu(true);
+        setRetainInstance(true);
     }
 
     @Override
@@ -229,6 +230,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     .appendPath("discover")
                     .appendPath("movie")
                     .appendQueryParameter("sort_by", sort)
+                    .appendQueryParameter("vote_count.gte", Integer.toString(10)) //TODO: Constant for key
                     .appendQueryParameter("page", Integer.toString(mCurrentPage))
                     .appendQueryParameter("api_key", "") //TODO: Add API key here.
                     .build();
@@ -357,14 +359,12 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                         task.execute(mSortOption);
                     }
                 } else {
-                    if (position ==1){
-                        if (mSortOption != SORT_RATING_PARAM){
-                            mSortOption = SORT_RATING_PARAM;
-                            mMovieAdapter.clear();
-                            mCurrentPage = 1;
-                            FetchMoviesTask task = new FetchMoviesTask();
-                            task.execute(mSortOption);
-                        }
+                    if (mSortOption != SORT_RATING_PARAM){
+                        mSortOption = SORT_RATING_PARAM;
+                        mMovieAdapter.clear();
+                        mCurrentPage = 1;
+                        FetchMoviesTask task = new FetchMoviesTask();
+                        task.execute(mSortOption);
                     }
                 }
             }

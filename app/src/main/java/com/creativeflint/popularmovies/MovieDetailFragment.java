@@ -51,6 +51,7 @@ public class MovieDetailFragment extends Fragment {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
         getActivity().getActionBar().setDisplayHomeAsUpEnabled(true); //TODO: Implement
+        setRetainInstance(true);
     }
 
     @Override
@@ -79,5 +80,15 @@ public class MovieDetailFragment extends Fragment {
         return detailView;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(MOVIE_PARAM, mMovie);
+        super.onSaveInstanceState(outState);
+    }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.d(TAG, "Detach called.");
+    }
 }

@@ -2,8 +2,12 @@ package com.creativeflint.popularmovies;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -55,14 +59,12 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SORT_OPTION = "sortOption";
-    private static final String ARG_PARAM2 = "param2";
     private static final String TAG = "MoviePosterFragment";
     private static final String SORT_POPULAR_PARAM = "popularity.desc";
     private static final String SORT_RATING_PARAM = "vote_average.desc";
 
     // TODO: Rename and change types of parameters
     private String mSortOption;
-    private String mParam2;
     private int mCurrentPage = 1;
 
     private OnMovieSelectedListener mListener;
@@ -77,11 +79,10 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     private ArrayAdapter<CharSequence> mSortSpinnerAdapter;
 
     // TODO: Rename and change types of parameters
-    public static MoviePosterFragment newInstance(String sortOption, String param2) {
+    public static MoviePosterFragment newInstance(String sortOption) {
         MoviePosterFragment fragment = new MoviePosterFragment();
         Bundle args = new Bundle();
         args.putString(ARG_SORT_OPTION, sortOption);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -100,7 +101,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
         if (getArguments() != null) {
             mSortOption = getArguments().getString(ARG_SORT_OPTION);
-            mParam2 = getArguments().getString(ARG_PARAM2);
         }
         if (mSortOption == null){
             mSortOption = settings.getString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
@@ -204,6 +204,19 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         @Override
         protected void onPostExecute(List<Movie> movieList) {
             super.onPostExecute(movieList);
+            if (movieList.isEmpty()){
+                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                alert.setMessage("Unable to download movies. Check your network connection.");
+                alert.setTitle("Download Failed");
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //do nothing.
+                    }
+                });
+                alert.show();
+
+            }
             if (mMovieAdapter == null){
                 movieList = new ArrayList<Movie>();
             }
@@ -213,6 +226,14 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
         @Override
         protected List<Movie> doInBackground(String... queryParams) {
+            ConnectivityManager conManager = (ConnectivityManager) getActivity()
+                    .getApplicationContext()
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo network = conManager.getActiveNetworkInfo();
+            if (network == null || !network.isConnectedOrConnecting()){
+                return new ArrayList<Movie>();
+            }
+
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -279,7 +300,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            return movies;
+            return movies == null ? new ArrayList<Movie>() : movies;
         }
 
         private List<Movie> getMoviesFromJson(String json) throws JSONException{
@@ -367,13 +388,22 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                         task.execute(mSortOption);
                     }
                 }
+                SharedPreferences.Editor prefsEditor = getActivity()
+                        .getPreferences(Context.MODE_PRIVATE)
+                        .edit();
+                prefsEditor.putString(ARG_SORT_OPTION, mSortOption).commit();
             }
+
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
             }
         });
+
+        if (mSortOption != null && mSortOption.equals(SORT_RATING_PARAM)){
+            sortSpinner.setSelection(1); //TODO: use member variable.
+        }
 
     }
 

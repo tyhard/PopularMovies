@@ -62,6 +62,11 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     private static final String TAG = "MoviePosterFragment";
     private static final String SORT_POPULAR_PARAM = "popularity.desc";
     private static final String SORT_RATING_PARAM = "vote_average.desc";
+    private static final String MOVIE_DB_API_KEY = "";
+    private static final int MINIMUM_VOTE_COUNT = 10;
+    private static final int SORT_POPULAR_ITEM_POSITION = 0;
+    private static final int SORT_RATING_ITEM_POSITION = 1;
+
 
     // TODO: Rename and change types of parameters
     private String mSortOption;
@@ -226,6 +231,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
         @Override
         protected List<Movie> doInBackground(String... queryParams) {
+            assert (MOVIE_DB_API_KEY != null && MOVIE_DB_API_KEY.isEmpty()) : "Invalid API key.";
+
             ConnectivityManager conManager = (ConnectivityManager) getActivity()
                     .getApplicationContext()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -251,9 +258,9 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     .appendPath("discover")
                     .appendPath("movie")
                     .appendQueryParameter("sort_by", sort)
-                    .appendQueryParameter("vote_count.gte", Integer.toString(10)) //TODO: Constant for key
+                    .appendQueryParameter("vote_count.gte", Integer.toString(MINIMUM_VOTE_COUNT))
                     .appendQueryParameter("page", Integer.toString(mCurrentPage))
-                    .appendQueryParameter("api_key", "") //TODO: Add API key here.
+                    .appendQueryParameter("api_key", MOVIE_DB_API_KEY)
                     .build();
 
             try{
@@ -280,7 +287,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                 }
                 moviesJson = buffer.toString();
             } catch (IOException e) {
-                Log.e(this.getClass().getName(), "Error ", e);
+                Log.e(TAG, "Error ", e);
                 moviesJson = null;
             } finally {
                 if (urlConnection != null) {
@@ -290,7 +297,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     try {
                         reader.close();
                     } catch (final IOException e) {
-                        Log.e(this.getClass().getName(), "Error closing stream", e);
+                        Log.e(TAG, "Error closing stream", e);
                     }
                 }
             }
@@ -298,7 +305,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             try {
                 movies = getMoviesFromJson(moviesJson);
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Can't parse JSON: " + e.getMessage());
             }
             return movies == null ? new ArrayList<Movie>() : movies;
         }
@@ -323,6 +330,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     }
                 } catch (ParseException pe) {
                     Log.e(this.getClass().getName(), "Unable to parse date: " + dateStr);
+                    dateStr = "";
                 }
 
                 movieList.add(movie);
@@ -359,7 +367,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     @Override
     public void onCreateOptionsMenu(final Menu menu, MenuInflater inflater){
-//        super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_posters, menu);
         MenuItem item = menu.findItem(R.id.sort_spinner);
         Spinner sortSpinner = (Spinner) item.getActionView();
@@ -371,7 +378,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0) {//TODO: Use constants
+                if (position == SORT_POPULAR_ITEM_POSITION) {
                     if(mSortOption != SORT_POPULAR_PARAM){
                         mSortOption = SORT_POPULAR_PARAM;
                         mMovieAdapter.clear();
@@ -397,12 +404,12 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                //Do nothing.
             }
         });
 
         if (mSortOption != null && mSortOption.equals(SORT_RATING_PARAM)){
-            sortSpinner.setSelection(1); //TODO: use member variable.
+            sortSpinner.setSelection(SORT_RATING_ITEM_POSITION);
         }
 
     }

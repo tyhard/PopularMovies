@@ -1,8 +1,8 @@
 package com.creativeflint.popularmovies;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -11,7 +11,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -211,9 +210,16 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             super.onPostExecute(movieList);
             if (movieList.isEmpty()){
                 AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                alert.setMessage("Unable to download movies. Check your network connection.");
-                alert.setTitle("Download Failed");
-                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                alert.setMessage(R.string.unable_to_connect);
+                alert.setTitle(R.string.download_failed);
+                alert.setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        FetchMoviesTask task = new FetchMoviesTask();
+                        task.execute(mSortOption);
+                    }
+                });
+                alert.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //do nothing.
@@ -231,7 +237,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
         @Override
         protected List<Movie> doInBackground(String... queryParams) {
-            assert (MOVIE_DB_API_KEY != null && MOVIE_DB_API_KEY.isEmpty()) : "Invalid API key.";
 
             ConnectivityManager conManager = (ConnectivityManager) getActivity()
                     .getApplicationContext()

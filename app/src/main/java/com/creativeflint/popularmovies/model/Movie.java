@@ -1,18 +1,22 @@
 package com.creativeflint.popularmovies.model;
 
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by ty on 7/23/15.
  */
 public class Movie implements Serializable{
-
-    /*original title
-    movie poster image thumbnail
-    A plot synopsis (called overview in the api)
-    user rating (called vote_average in the api)
-    release date*/
 
     private String title;
     private String posterPath;
@@ -20,6 +24,7 @@ public class Movie implements Serializable{
     private double userRating;
     private Date releaseDate;
 
+    private final static String TAG = "Movie";
     private final static String posterImageRootUrl = "http://image.tmdb.org/t/p/w185";
 
     public String getTitle() {
@@ -70,6 +75,35 @@ public class Movie implements Serializable{
     @Override
     public String toString() {
         return this.getTitle();
+    }
+
+    public static List<Movie> getMoviesFromJson(String json) throws JSONException {
+        List<Movie> movieList = new ArrayList<>();
+        JSONObject envelope = new JSONObject(json);
+        JSONArray jsonMovieList = envelope.getJSONArray("results");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        for (int i = 0; i < jsonMovieList.length(); i++){
+            JSONObject jsonMovie = jsonMovieList.getJSONObject(i);
+            Movie movie = new Movie();
+            movie.setTitle(jsonMovie.getString("title"));
+            movie.setOverview(jsonMovie.getString("overview"));
+            movie.setPosterPath(jsonMovie.getString("poster_path"));
+            movie.setUserRating(jsonMovie.getDouble("vote_average"));
+            String dateStr = jsonMovie.getString("release_date");
+            try{
+                if (dateStr != null){
+                    movie.setReleaseDate(dateFormat.parse(dateStr));
+                }
+            } catch (ParseException pe) {
+                Log.e(TAG, "Unable to parse date: " + dateStr);
+                dateStr = "";
+            }
+
+            movieList.add(movie);
+        }
+        Log.d(TAG, "movieList size: " + movieList.size());
+        return movieList;
     }
 
 }

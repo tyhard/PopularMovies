@@ -1,10 +1,12 @@
 package com.creativeflint.popularmovies;
 
+import android.app.Activity;
 import android.media.Rating;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -50,7 +52,7 @@ public class MovieDetailFragment extends Fragment {
         if (getArguments() != null) {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
-        getActivity().getActionBar().setDisplayHomeAsUpEnabled(true); //TODO: Implement
+
         setRetainInstance(true);
     }
 
@@ -87,8 +89,28 @@ public class MovieDetailFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        getActivity().getActionBar().setDisplayHomeAsUpEnabled(true); //TODO: Implement
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         Log.d(TAG, "Detach called.");
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home){
+
+            getFragmentManager().beginTransaction().replace(R.id.main_fragment_container,
+                    getFragmentManager().findFragmentByTag("posters")).commit();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+
+
     }
 }

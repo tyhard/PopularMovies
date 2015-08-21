@@ -61,6 +61,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     private static final int SORT_POPULAR_ITEM_POSITION = 0;
     private static final int SORT_RATING_ITEM_POSITION = 1;
 
+    private FetchMoviesTask mFetchMoviesTask;
+
     private AlertDialog alertDialog = null;
 
 
@@ -167,6 +169,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     public void onDetach() {
         super.onDetach();
         mPosterClickListener = null;
+        mCommunicationErrorListener = null;
     }
 
     @Override
@@ -217,10 +220,11 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             }
             if (mMovieAdapter == null){
                 movieList = new ArrayList<Movie>();
-            } else{
-                mMovieAdapter.addAll(movieList);
-                mCurrentPage++;
             }
+            mMovieAdapter.addAll(movieList);
+            mCurrentPage++;
+            mFetchMoviesTask = null;
+
 
         }
 
@@ -345,14 +349,14 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position == SORT_POPULAR_ITEM_POSITION) {
-                    if(mSortOption != SORT_POPULAR_PARAM){
+                    if(!mSortOption.equals(SORT_POPULAR_PARAM)){
                         mSortOption = SORT_POPULAR_PARAM;
                         mMovieAdapter.clear();
                         mCurrentPage = 1;
                         fetchMovies();
                     }
                 } else {
-                    if (mSortOption != SORT_RATING_PARAM){
+                    if (!mSortOption.equals(SORT_RATING_PARAM)){
                         mSortOption = SORT_RATING_PARAM;
                         mMovieAdapter.clear();
                         mCurrentPage = 1;
@@ -379,7 +383,11 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     }
 
     private void fetchMovies(){
-        new FetchMoviesTask().execute(mSortOption);
+        if (mFetchMoviesTask == null || mFetchMoviesTask.getStatus() == AsyncTask.Status.FINISHED){
+            mFetchMoviesTask = new FetchMoviesTask();
+            mFetchMoviesTask.execute(mSortOption);
+        }
+
     }
 
 //    @Override

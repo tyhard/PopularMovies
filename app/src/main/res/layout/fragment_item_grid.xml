@@ -1,23 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<android.support.v4.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.creativeflint.popularmovies.MoviePosterFragment"
-    android:id="@+id/grid_frame">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/refresh_layout">
 
-    <GridView android:id="@android:id/list"
-        android:layout_width="match_parent"
+    <FrameLayout  android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:horizontalSpacing="0dp"
-        android:verticalSpacing="0dp"
-        android:clickable="false"
-        android:numColumns="auto_fit"
-        android:columnWidth="@dimen/poster_column_width"
-        android:stretchMode="columnWidth" />
+        android:id="@+id/grid_frame">
 
-    <TextView android:id="@android:id/empty" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:gravity="center" />
+        <GridView android:id="@android:id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:horizontalSpacing="0dp"
+            android:verticalSpacing="0dp"
+            android:clickable="false"
+            android:numColumns="auto_fit"
+            android:columnWidth="@dimen/poster_column_width"
+            android:stretchMode="columnWidth" />
 
-</FrameLayout>
+        <TextView android:id="@android:id/empty" android:layout_width="match_parent"
+            android:layout_height="match_parent" android:gravity="center" />
+
+    </FrameLayout>
+</android.support.v4.widget.SwipeRefreshLayout>

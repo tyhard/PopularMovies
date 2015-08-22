@@ -10,6 +10,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -48,10 +49,9 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnMovieSelectedListener}
  * interface.
  */
-public class MoviePosterFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class MoviePosterFragment extends Fragment implements AbsListView.OnItemClickListener,
+        SwipeRefreshLayout.OnRefreshListener{
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SORT_OPTION = "sortOption";
     private static final String TAG = "MoviePosterFragment";
     private static final String SORT_POPULAR_PARAM = "popularity.desc";
@@ -72,6 +72,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     private OnMovieSelectedListener mPosterClickListener;
     private OnCommunicationErrorListener mCommunicationErrorListener;
+
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     /**
      * The fragment's ListView/GridView.
@@ -99,8 +101,10 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);//            Fragment fragment = MoviePosterFragment.newInstance(null, null);
+        super.onCreate(savedInstanceState);
         SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
+
+
 
         if (getArguments() != null) {
             mSortOption = getArguments().getString(ARG_SORT_OPTION);
@@ -108,6 +112,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         if (mSortOption == null){
             mSortOption = settings.getString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
         }
+
 
         mMovieAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
         fetchMovies();
@@ -120,6 +125,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_item, container, false);
 
+        mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
 
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
@@ -142,6 +149,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem,
                                  int visibleItemCount, int totalItemCount) {
+                mSwipeRefreshLayout.setEnabled(firstVisibleItem == 0);
+
             }
         });
 
@@ -197,6 +206,15 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     public Movie getSelectedMovie(int position){
         return (Movie) mMovieAdapter.getItem(position);
+    }
+
+    @Override
+    public void onRefresh() {
+        Log.d(TAG, "First vis pos: " + mListView.getFirstVisiblePosition());
+        mMovieAdapter.clear();
+        mCurrentPage = 1;
+        fetchMovies();
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     public interface OnMovieSelectedListener {
@@ -336,7 +354,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     }
 
     @Override
-    public void onCreateOptionsMenu(final Menu menu, MenuInflater inflater){
+    public void onCreateOptionsMenu(final Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_posters, menu);
         MenuItem item = menu.findItem(R.id.sort_spinner);
         Spinner sortSpinner = (Spinner) item.getActionView();

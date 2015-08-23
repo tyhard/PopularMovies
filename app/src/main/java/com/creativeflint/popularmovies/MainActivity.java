@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2015 Creative Flint
+ */
 package com.creativeflint.popularmovies;
 
 
@@ -10,11 +13,14 @@ import android.util.Log;
 
 import com.creativeflint.popularmovies.model.Movie;
 
+/**
+ * Main activity for the Popular Movies app
+ */
 public class MainActivity extends Activity
         implements MoviePosterFragment.OnMovieSelectedListener,
         MoviePosterFragment.OnCommunicationErrorListener{
 
-    public static final String TAG = "MovieActivity";
+    private static final String TAG = "MovieActivity";
     private static final String POSTER_FRAG_TAG = "posters";
     private static final String DETAILS_FRAG_TAG = "details";
 
@@ -38,7 +44,7 @@ public class MainActivity extends Activity
 
         if (mMovieDetailFragment == null) {
             if (mMoviePosterFragment == null){
-                mMoviePosterFragment = MoviePosterFragment.newInstance(null);
+                mMoviePosterFragment = new MoviePosterFragment();
             }
 
             fragmentManager.beginTransaction()
@@ -75,16 +81,13 @@ public class MainActivity extends Activity
         Log.d(TAG, "Comm Error Called");
         AlertDialog alertDialog = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        Log.d(TAG, "Alert = " + builder);
-
         builder.setMessage(R.string.unable_to_connect);
         builder.setTitle(R.string.download_failed);
         builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (mMoviePosterFragment == null){
-                    mMoviePosterFragment = MoviePosterFragment.newInstance(null);
+                    mMoviePosterFragment = new MoviePosterFragment();
                 }
 
                 getFragmentManager().beginTransaction()

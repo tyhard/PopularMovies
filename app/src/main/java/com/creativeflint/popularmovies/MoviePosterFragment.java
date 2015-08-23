@@ -1,7 +1,6 @@
 package com.creativeflint.popularmovies;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -22,9 +21,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.creativeflint.popularmovies.model.Movie;
 import com.squareup.picasso.Picasso;
@@ -41,12 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A fragment representing a list of Items.
- * <p/>
- * Large screen devices (such as tablets) are supported by replacing the ListView
- * with a GridView.
- * <p/>
+ * A fragment representing a grid of movie posters.
+ *
  * Activities containing this fragment MUST implement the {@link OnMovieSelectedListener}
+ * and {@link OnCommunicationErrorListener}
  * interface.
  */
 public class MoviePosterFragment extends Fragment implements AbsListView.OnItemClickListener,
@@ -63,10 +58,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     private FetchMoviesTask mFetchMoviesTask;
 
-    private AlertDialog alertDialog = null;
-
-
-    // TODO: Rename and change types of parameters
     private String mSortOption;
     private int mCurrentPage = 1;
 
@@ -80,17 +71,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
      */
     private AbsListView mListView;
 
-
     private ArrayAdapter mMovieAdapter;
-    private ArrayAdapter<CharSequence> mSortSpinnerAdapter;
-
-    public static MoviePosterFragment newInstance(String sortOption) {
-        MoviePosterFragment fragment = new MoviePosterFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_SORT_OPTION, sortOption);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -102,9 +83,11 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (MOVIE_DB_API_KEY == null || MOVIE_DB_API_KEY.isEmpty()){
+            throw new IllegalArgumentException("API key is missing");
+        }
+
         SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
-
-
 
         if (getArguments() != null) {
             mSortOption = getArguments().getString(ARG_SORT_OPTION);
@@ -112,7 +95,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         if (mSortOption == null){
             mSortOption = settings.getString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
         }
-
 
         mMovieAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
         fetchMovies();
@@ -128,11 +110,9 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
-        // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mMovieAdapter);
+        mListView.setAdapter(mMovieAdapter);
 
-        // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
 
         mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -190,41 +170,42 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         }
     }
 
-
-    /**
-     * The default content for this Fragment has a TextView that is shown when
-     * the list is empty. If you would like to change the text, call this method
-     * to supply the text it should use.
-     */
-    public void setEmptyText(CharSequence emptyText) {
-        View emptyView = mListView.getEmptyView();
-
-        if (emptyView instanceof TextView) {
-            ((TextView) emptyView).setText(emptyText);
-        }
-    }
-
     public Movie getSelectedMovie(int position){
         return (Movie) mMovieAdapter.getItem(position);
     }
 
     @Override
     public void onRefresh() {
-        Log.d(TAG, "First vis pos: " + mListView.getFirstVisiblePosition());
         mMovieAdapter.clear();
         mCurrentPage = 1;
         fetchMovies();
         mSwipeRefreshLayout.setRefreshing(false);
     }
 
+    /**
+     * Listener for movie selections
+     */
     public interface OnMovieSelectedListener {
+        /**
+         * Fired when a movie poster is selected.
+         * @param position the position of the movie in the list
+         */
         public void onMovieSelected(int position);
     }
 
+    /**
+     * Listener for communication errors
+     */
     public interface OnCommunicationErrorListener{
+        /**
+         * Fired when a network communication error occurs so info can be passed to the UI.
+         */
         public void onCommunicationError();
     }
 
+    /**
+     * A background task to retrieve movies from the service URL
+     */
     private class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
 
         FetchMoviesTask(){
@@ -242,8 +223,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             mMovieAdapter.addAll(movieList);
             mCurrentPage++;
             mFetchMoviesTask = null;
-
-
         }
 
         @Override
@@ -267,7 +246,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                 sort = queryParams[0];
             }
 
-            //TODO: add TMDb attribution to "About" or "Credits"
             Uri movieServiceUri = Uri.parse("http://api.themoviedb.org").buildUpon()
                     .appendPath("3")
                     .appendPath("discover")
@@ -279,23 +257,20 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                     .build();
 
             try{
-
                 URL url = new URL(movieServiceUri.toString());
-                // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
-                // Read the input stream into a String
+
                 InputStream stream = urlConnection.getInputStream();
                 StringBuffer buffer = new StringBuffer();
                 if (stream == null) {
-                    // Nothing to do.
                     moviesJson = null;
                 }
                 reader = new BufferedReader(new InputStreamReader(stream));
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
+                    buffer.append(line);
                 }
                 if (buffer.length() == 0) {
                     moviesJson = null;
@@ -346,7 +321,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             Log.d(TAG, "Poster URL: " + movie.getPosterPath());
             Picasso.with(getActivity().getApplicationContext())
                     .load(movie.getPosterPath())
-                    .placeholder(R.drawable.spinner_rotate) //TODO: fix spinner
+                    .placeholder(R.drawable.spinner_rotate)
                     .into(posterView);
             return convertView;
         }
@@ -387,7 +362,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                 prefsEditor.putString(ARG_SORT_OPTION, mSortOption).commit();
             }
 
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 //Do nothing.
@@ -407,9 +381,4 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         }
 
     }
-
-//    @Override
-//    public void onSaveInstanceState(Bundle outState) {
-//        super.onSaveInstanceState(outState);
-//    }
 }

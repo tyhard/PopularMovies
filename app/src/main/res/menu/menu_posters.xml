@@ -3,11 +3,4 @@
     <item android:showAsAction="ifRoom"
         android:actionViewClass="android.widget.Spinner"
         android:id="@+id/sort_spinner"/>
-
-    <!--<item android:id="@+id/sort_popular"-->
-        <!--android:title="Most Popular"-->
-        <!--android:checkable="true"/>-->
-    <!--<item android:id="@+id/sort_rating"-->
-        <!--android:title="Highest Rated"-->
-        <!--android:checkable="true"/>-->
 </menu>

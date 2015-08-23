@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2015 Creative Flint
+ */
 package com.creativeflint.popularmovies.model;
 
 import android.util.Log;
@@ -14,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by ty on 7/23/15.
+ * Model for holding movie data.
  */
 public class Movie implements Serializable{
 
@@ -77,6 +80,13 @@ public class Movie implements Serializable{
         return this.getTitle();
     }
 
+    /**
+     * Builds a list of Movie objects from a JSON string of movie data
+     * (as supplied by themoviedb.org).
+     * @param json the raw JSON data
+     * @return a {@code List} of {@code Movie} objects
+     * @throws JSONException if the supplied JSON string can't be parsed.
+     */
     public static List<Movie> getMoviesFromJson(String json) throws JSONException {
         List<Movie> movieList = new ArrayList<>();
         JSONObject envelope = new JSONObject(json);
@@ -102,7 +112,6 @@ public class Movie implements Serializable{
 
             movieList.add(movie);
         }
-        Log.d(TAG, "movieList size: " + movieList.size());
         return movieList;
     }
 

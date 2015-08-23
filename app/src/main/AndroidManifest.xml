@@ -3,7 +3,6 @@
     package="com.creativeflint.popularmovies" >
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-sdk android:minSdkVersion="11"/>
 
     <application
         android:allowBackup="true"

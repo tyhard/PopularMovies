@@ -1,7 +1,8 @@
+/*
+ * Copyright (c) 2015 Creative Flint
+ */
 package com.creativeflint.popularmovies;
 
-import android.app.Activity;
-import android.media.Rating;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -17,23 +18,18 @@ import com.creativeflint.popularmovies.model.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 
-
+/**
+ * A fragment for displaying the details of a selected movie.
+ */
 public class MovieDetailFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String MOVIE_PARAM = "MOVIE";
     private static final String TAG = "MovieDetailFragment";
+    private static final String POSTER_FRAG_TAG = "posters";
 
-    // TODO: Rename and change types of parameters
     private Movie mMovie;
 
-
-
-    // TODO: Rename and change types and number of parameters
     public static MovieDetailFragment newInstance(Movie movie) {
         MovieDetailFragment fragment = new MovieDetailFragment();
         Bundle args = new Bundle();
@@ -52,7 +48,6 @@ public class MovieDetailFragment extends Fragment {
         if (getArguments() != null) {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
-
         setRetainInstance(true);
     }
 
@@ -77,7 +72,7 @@ public class MovieDetailFragment extends Fragment {
         ImageView moviePoster = (ImageView) detailView.findViewById(R.id.movie_poster_view);
         Picasso.with(getActivity().getApplicationContext())
                 .load(mMovie.getPosterPath())
-                .placeholder(R.drawable.spinner_rotate) //TODO: fix spinner
+                .placeholder(R.drawable.spinner_rotate)
                 .into(moviePoster);
         return detailView;
     }
@@ -89,23 +84,10 @@ public class MovieDetailFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        getActivity().getActionBar().setDisplayHomeAsUpEnabled(true); //TODO: Implement
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        Log.d(TAG, "Detach called.");
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home){
-
             getFragmentManager().beginTransaction().replace(R.id.main_fragment_container,
-                    getFragmentManager().findFragmentByTag("posters")).commit();
+                    getFragmentManager().findFragmentByTag(POSTER_FRAG_TAG)).commit();
             return true;
         } else {
             return super.onOptionsItemSelected(item);

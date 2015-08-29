@@ -48,7 +48,6 @@ public class MovieDetailFragment extends Fragment {
         if (getArguments() != null) {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
-        setRetainInstance(true);
     }
 
     @Override
@@ -79,14 +78,17 @@ public class MovieDetailFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putSerializable(MOVIE_PARAM, mMovie);
         super.onSaveInstanceState(outState);
+        outState.putSerializable(MOVIE_PARAM, mMovie);
+        Log.d(TAG, "Saving Bundle: " + outState);
+
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home){
-            getFragmentManager().beginTransaction().replace(R.id.main_fragment_container,
+            getActivity().getFragmentManager().beginTransaction()
+                    .replace(R.id.main_fragment_container,
                     getFragmentManager().findFragmentByTag(POSTER_FRAG_TAG)).commit();
             return true;
         } else {

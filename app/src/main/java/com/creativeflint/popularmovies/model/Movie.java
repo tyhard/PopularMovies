@@ -3,6 +3,8 @@
  */
 package com.creativeflint.popularmovies.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -19,7 +21,7 @@ import java.util.List;
 /**
  * Model for holding movie data.
  */
-public class Movie implements Serializable{
+public class Movie implements Parcelable, Serializable{
 
     private String title;
     private String posterPath;
@@ -29,6 +31,42 @@ public class Movie implements Serializable{
 
     private final static String TAG = "Movie";
     private final static String posterImageRootUrl = "http://image.tmdb.org/t/p/w185";
+
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>(){
+        @Override
+        public Movie createFromParcel(Parcel in){
+            return new Movie(in);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
+
+    public Movie() {}
+
+    public Movie(Parcel in){
+        title = in.readString();
+        posterPath = in.readString();
+        overview = in.readString();
+        userRating = in.readDouble();
+        releaseDate = new Date(in.readLong());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(title);
+        dest.writeString(posterPath);
+        dest.writeString(overview);
+        dest.writeDouble(userRating);
+        dest.writeLong(releaseDate.getTime());
+    }
 
     public String getTitle() {
         return title;
@@ -104,6 +142,8 @@ public class Movie implements Serializable{
             try{
                 if (dateStr != null){
                     movie.setReleaseDate(dateFormat.parse(dateStr));
+                } else {
+                    dateStr = "";
                 }
             } catch (ParseException pe) {
                 Log.e(TAG, "Unable to parse date: " + dateStr);

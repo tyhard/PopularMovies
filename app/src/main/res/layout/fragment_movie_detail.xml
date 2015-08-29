@@ -1,7 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/detail_layout">
 
     <TextView
         android:layout_width="match_parent"
@@ -28,7 +29,8 @@
             android:layout_height="wrap_content"
             tools:context="com.creativeflint.popularmovies.MovieDetailFragment"
             android:padding="8dp"
-            android:layout_width="match_parent">
+            android:layout_width="match_parent"
+            android:id="@+id/content_layout">
 
             <ImageView
                 android:layout_width="wrap_content"

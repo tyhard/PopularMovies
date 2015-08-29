@@ -9,6 +9,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -48,10 +49,13 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         SwipeRefreshLayout.OnRefreshListener{
 
     private static final String ARG_SORT_OPTION = "sortOption";
+    private static final String ARG_MOVIE_LIST = "movieList";
     private static final String TAG = "MoviePosterFragment";
     private static final String SORT_POPULAR_PARAM = "popularity.desc";
     private static final String SORT_RATING_PARAM = "vote_average.desc";
     private static final String MOVIE_DB_API_KEY = "";
+    private static final String MOVIE_SCROLL_POSITION = "moviePosition";
+    private static final String CURRENT_PAGE = "currentPage";
     private static final int MINIMUM_VOTE_COUNT = 10;
     private static final int SORT_POPULAR_ITEM_POSITION = 0;
     private static final int SORT_RATING_ITEM_POSITION = 1;
@@ -60,6 +64,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
     private String mSortOption;
     private int mCurrentPage = 1;
+    private int mScrollPosition = 0;
 
     private OnMovieSelectedListener mPosterClickListener;
     private OnCommunicationErrorListener mCommunicationErrorListener;
@@ -71,7 +76,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
      */
     private AbsListView mListView;
 
-    private ArrayAdapter mMovieAdapter;
+    private ArrayAdapter<Movie> mMovieAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -80,9 +85,18 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     public MoviePosterFragment() {
     }
 
+    public static MoviePosterFragment newInstance(int position){
+        MoviePosterFragment fragment = new MoviePosterFragment();
+        Bundle args = new Bundle();
+        args.putInt(MOVIE_SCROLL_POSITION, position);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "On Create Called, Bundle = " + savedInstanceState);
         if (MOVIE_DB_API_KEY == null || MOVIE_DB_API_KEY.isEmpty()){
             throw new IllegalArgumentException("API key is missing");
         }
@@ -95,9 +109,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         if (mSortOption == null){
             mSortOption = settings.getString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
         }
-
-        mMovieAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
-        fetchMovies();
         setHasOptionsMenu(true);
         setRetainInstance(true);
     }
@@ -105,7 +116,32 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView Called, Bundle = " + savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_item, container, false);
+
+        if (mMovieAdapter == null){
+            mMovieAdapter = new MoviePosterAdapter(new ArrayList<Movie>());
+            Log.d(TAG, "New mMovieAdapter created.");
+        }
+
+        ArrayList<Movie> movies = null;
+        if (savedInstanceState != null){
+            movies = savedInstanceState.getParcelableArrayList(ARG_MOVIE_LIST);
+            Log.d(TAG, "Movies restored: " + (movies != null ? movies.size() : 0));
+            mScrollPosition = savedInstanceState.getInt(MOVIE_SCROLL_POSITION);
+            Log.d(TAG, "Scroll position restored: " + mScrollPosition);
+            mCurrentPage = savedInstanceState.getInt(CURRENT_PAGE);
+        }
+
+        //Restore any movies already downloaded
+        if (movies != null && !movies.isEmpty()){
+            mMovieAdapter.addAll(movies);
+        }
+
+        if (mMovieAdapter.isEmpty()){
+            mCurrentPage = 1;
+            fetchMovies();
+        }
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh_layout);
         mSwipeRefreshLayout.setOnRefreshListener(this);
@@ -119,6 +155,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == SCROLL_STATE_IDLE) {
+                    mScrollPosition = view.getFirstVisiblePosition();
+                    Log.d(TAG, "Scroll Position: " + mScrollPosition);
                     if (view.getLastVisiblePosition() >= view.getCount() - 1) {
                         fetchMovies();
                     }
@@ -133,6 +171,9 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
             }
         });
+        Log.d(TAG, "Scrolling to: " + mScrollPosition);
+        mListView.setSelection(mScrollPosition);
+        mListView.smoothScrollToPosition(mScrollPosition);
 
         return view;
     }
@@ -154,11 +195,25 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         }
     }
 
-    @Override
+     @Override
     public void onDetach() {
         super.onDetach();
         mPosterClickListener = null;
         mCommunicationErrorListener = null;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        List<Movie> movies = new ArrayList<>();
+        if (mMovieAdapter != null){
+            for (int i = 0; i < mMovieAdapter.getCount(); i++){
+                movies.add(mMovieAdapter.getItem(i));
+            }
+        }
+        outState.putParcelableArrayList(ARG_MOVIE_LIST, (ArrayList<? extends Parcelable>) movies);
+        outState.putInt(MOVIE_SCROLL_POSITION, mScrollPosition);
+        outState.putInt(CURRENT_PAGE, mCurrentPage);
     }
 
     @Override
@@ -171,7 +226,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     }
 
     public Movie getSelectedMovie(int position){
-        return (Movie) mMovieAdapter.getItem(position);
+        return mMovieAdapter.getItem(position);
     }
 
     @Override
@@ -218,7 +273,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                 mCommunicationErrorListener.onCommunicationError();
             }
             if (mMovieAdapter == null){
-                movieList = new ArrayList<Movie>();
+                movieList = new ArrayList<>();
             }
             mMovieAdapter.addAll(movieList);
             mCurrentPage++;
@@ -227,13 +282,13 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
         @Override
         protected List<Movie> doInBackground(String... queryParams) {
-
+            Log.d(TAG, "Making network call");
             ConnectivityManager conManager = (ConnectivityManager) getActivity()
                     .getApplicationContext()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo network = conManager.getActiveNetworkInfo();
             if (network == null || !network.isConnectedOrConnecting()){
-                return new ArrayList<Movie>();
+                return new ArrayList<>();
             }
 
             HttpURLConnection urlConnection = null;
@@ -258,6 +313,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
             try{
                 URL url = new URL(movieServiceUri.toString());
+                Log.d(TAG, "Fetching movies from: " + url);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
@@ -318,7 +374,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
 
             ImageView posterView = (ImageView) convertView.findViewById(R.id.movie_poster_image_view);
             Movie movie = getItem(position);
-            Log.d(TAG, "Poster URL: " + movie.getPosterPath());
             Picasso.with(getActivity().getApplicationContext())
                     .load(movie.getPosterPath())
                     .placeholder(R.drawable.spinner_rotate)
@@ -379,6 +434,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
             mFetchMoviesTask = new FetchMoviesTask();
             mFetchMoviesTask.execute(mSortOption);
         }
-
     }
+
 }

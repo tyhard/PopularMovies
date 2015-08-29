@@ -36,6 +36,8 @@ public class MainActivity extends Activity
         if (savedInstanceState != null){
             mMoviePosterFragment = (MoviePosterFragment) getFragmentManager()
                     .getFragment(savedInstanceState, POSTER_FRAG_TAG);
+            Log.d(TAG, "MoviePosterFragment restored: " + mMoviePosterFragment);
+            Log.d(TAG, "savedInstanceState = " + savedInstanceState);
         }
 
         FragmentManager fragmentManager = getFragmentManager();
@@ -48,19 +50,14 @@ public class MainActivity extends Activity
             }
 
             fragmentManager.beginTransaction()
-//                .addToBackStack(null)
                     .replace(R.id.main_fragment_container, mMoviePosterFragment, POSTER_FRAG_TAG)
                     .commit();
         }
-
-
     }
 
 
     @Override
     public void onMovieSelected(int position) {
-        mMoviePosterFragment = (MoviePosterFragment) getFragmentManager()
-                .findFragmentByTag(POSTER_FRAG_TAG);
         Movie selectedMovie = mMoviePosterFragment.getSelectedMovie(position);
 
         mMovieDetailFragment = MovieDetailFragment.newInstance(selectedMovie);
@@ -74,6 +71,7 @@ public class MainActivity extends Activity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         getFragmentManager().putFragment(outState, POSTER_FRAG_TAG, mMoviePosterFragment);
+        Log.d(TAG, "Saving fragment: " + getFragmentManager().getFragment(outState, POSTER_FRAG_TAG));
     }
 
     @Override
@@ -105,7 +103,5 @@ public class MainActivity extends Activity
         if (!alertDialog.isShowing()){
             alertDialog.show();
         }
-
-
     }
 }

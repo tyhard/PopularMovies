@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -25,18 +24,12 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 
 import com.creativeflint.popularmovies.model.Movie;
+import com.creativeflint.popularmovies.rest.MovieFetcher;
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONException;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
 
 /**
  * A fragment representing a grid of movie posters.
@@ -53,10 +46,8 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     private static final String TAG = "MoviePosterFragment";
     private static final String SORT_POPULAR_PARAM = "popularity.desc";
     private static final String SORT_RATING_PARAM = "vote_average.desc";
-    private static final String MOVIE_DB_API_KEY = "";
     private static final String MOVIE_SCROLL_POSITION = "moviePosition";
     private static final String CURRENT_PAGE = "currentPage";
-    private static final int MINIMUM_VOTE_COUNT = 10;
     private static final int SORT_POPULAR_ITEM_POSITION = 0;
     private static final int SORT_RATING_ITEM_POSITION = 1;
 
@@ -97,9 +88,6 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "On Create Called, Bundle = " + savedInstanceState);
-        if (MOVIE_DB_API_KEY == null || MOVIE_DB_API_KEY.isEmpty()){
-            throw new IllegalArgumentException("API key is missing");
-        }
 
         SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
 
@@ -108,6 +96,9 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         }
         if (mSortOption == null){
             mSortOption = settings.getString(ARG_SORT_OPTION, SORT_POPULAR_PARAM);
+        }
+        if (mSortOption == null){
+            mSortOption = SORT_POPULAR_PARAM;
         }
         setHasOptionsMenu(true);
         setRetainInstance(true);
@@ -291,69 +282,14 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
                 return new ArrayList<>();
             }
 
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            String moviesJson = null;
-
             String sort = null;
             if (queryParams != null && queryParams.length > 0){
                 sort = queryParams[0];
+            } else {
+                sort = SORT_POPULAR_PARAM;
             }
 
-            Uri movieServiceUri = Uri.parse("http://api.themoviedb.org").buildUpon()
-                    .appendPath("3")
-                    .appendPath("discover")
-                    .appendPath("movie")
-                    .appendQueryParameter("sort_by", sort)
-                    .appendQueryParameter("vote_count.gte", Integer.toString(MINIMUM_VOTE_COUNT))
-                    .appendQueryParameter("page", Integer.toString(mCurrentPage))
-                    .appendQueryParameter("api_key", MOVIE_DB_API_KEY)
-                    .build();
-
-            try{
-                URL url = new URL(movieServiceUri.toString());
-                Log.d(TAG, "Fetching movies from: " + url);
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                InputStream stream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (stream == null) {
-                    moviesJson = null;
-                }
-                reader = new BufferedReader(new InputStreamReader(stream));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line);
-                }
-                if (buffer.length() == 0) {
-                    moviesJson = null;
-                }
-                moviesJson = buffer.toString();
-            } catch (IOException e) {
-                Log.e(TAG, "Error ", e);
-                moviesJson = null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(TAG, "Error closing stream", e);
-                    }
-                }
-            }
-            List<Movie> movies = null;
-            try {
-                movies = Movie.getMoviesFromJson(moviesJson);
-            } catch (JSONException e) {
-                Log.e(TAG, "Can't parse JSON: " + e.getMessage());
-            }
-            return movies == null ? new ArrayList<Movie>() : movies;
+            return MovieFetcher.getMoviesFromService(sort, mCurrentPage);
         }
 
 

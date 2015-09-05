@@ -15,5 +15,6 @@
     <string-array name="sort_options_array">
         <item>Most Popular</item>
         <item>Highest Rated</item>
+        <item>My Favorites</item>
     </string-array>
 </resources>

@@ -50,6 +50,7 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
     private static final String CURRENT_PAGE = "currentPage";
     private static final int SORT_POPULAR_ITEM_POSITION = 0;
     private static final int SORT_RATING_ITEM_POSITION = 1;
+    private static final int MY_FAVORITES_ITEM_POSITION = 2;
 
     private FetchMoviesTask mFetchMoviesTask;
 
@@ -332,20 +333,30 @@ public class MoviePosterFragment extends Fragment implements AbsListView.OnItemC
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == SORT_POPULAR_ITEM_POSITION) {
-                    if(!mSortOption.equals(SORT_POPULAR_PARAM)){
-                        mSortOption = SORT_POPULAR_PARAM;
-                        mMovieAdapter.clear();
-                        mCurrentPage = 1;
-                        fetchMovies();
-                    }
-                } else {
-                    if (!mSortOption.equals(SORT_RATING_PARAM)){
-                        mSortOption = SORT_RATING_PARAM;
-                        mMovieAdapter.clear();
-                        mCurrentPage = 1;
-                        fetchMovies();
-                    }
+                switch (position) {
+                    case SORT_POPULAR_ITEM_POSITION:
+                        if (!mSortOption.equals(SORT_POPULAR_PARAM)) {
+                            mSortOption = SORT_POPULAR_PARAM;
+                            mMovieAdapter.clear();
+                            mCurrentPage = 1;
+                            fetchMovies();
+                        }
+                        break;
+                    case SORT_RATING_ITEM_POSITION:
+                        if (!mSortOption.equals(SORT_RATING_PARAM)) {
+                            mSortOption = SORT_RATING_PARAM;
+                            mMovieAdapter.clear();
+                            mCurrentPage = 1;
+                            fetchMovies();
+                        }
+                        break;
+                    case MY_FAVORITES_ITEM_POSITION:
+                        //TODO: retrieve movies from the database
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported menu item position: "
+                                + position);
+
                 }
                 SharedPreferences.Editor prefsEditor = getActivity()
                         .getPreferences(Context.MODE_PRIVATE)

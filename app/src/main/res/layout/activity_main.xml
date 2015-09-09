@@ -1,11 +1,25 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="horizontal"
     tools:context=".MainActivity"
     android:id="@+id/main_fragment_container">
 
-    <ScrollView
-        android:layout_width="match_parent"
+    <!--<ScrollView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:id="@+id/scroll_view" />-->
+
+    <FrameLayout
+        android:id="@+id/posters_container"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:id="@+id/scroll_view" />
-</FrameLayout>
+        android:layout_weight="60"/>
+
+    <FrameLayout
+        android:id="@+id/detail_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="40"
+        android:visibility="gone"/>
+</LinearLayout>

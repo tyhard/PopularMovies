@@ -52,8 +52,7 @@ public class MovieFetcher {
             String jsonString = new String(byteArray.getBytes());
 
             movies = Movie.getMoviesFromJson(jsonString);
-        } catch (
-                RetrofitError re){
+        } catch (RetrofitError re){
             Log.e(TAG, re.getMessage() + ": " + re.getUrl());
             movies = null;
         } catch (JSONException je){

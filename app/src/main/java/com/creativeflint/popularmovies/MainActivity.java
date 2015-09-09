@@ -6,10 +6,15 @@ package com.creativeflint.popularmovies;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import com.creativeflint.popularmovies.model.Movie;
 
@@ -48,9 +53,8 @@ public class MainActivity extends Activity
             if (mMoviePosterFragment == null){
                 mMoviePosterFragment = new MoviePosterFragment();
             }
-
             fragmentManager.beginTransaction()
-                    .replace(R.id.main_fragment_container, mMoviePosterFragment, POSTER_FRAG_TAG)
+                    .replace(R.id.posters_container, mMoviePosterFragment, POSTER_FRAG_TAG)
                     .commit();
         }
     }
@@ -61,10 +65,29 @@ public class MainActivity extends Activity
         Movie selectedMovie = mMoviePosterFragment.getSelectedMovie(position);
 
         mMovieDetailFragment = MovieDetailFragment.newInstance(selectedMovie);
-        getFragmentManager().beginTransaction()
-            .replace(R.id.main_fragment_container, mMovieDetailFragment, DETAILS_FRAG_TAG)
-            .addToBackStack(null)
-            .commit();
+
+        int screenWidth = getResources().getConfiguration().screenWidthDp;
+        Log.d(TAG, "Smallest Screen: " + screenWidth);
+        Fragment detailsFragment = getFragmentManager().findFragmentByTag(DETAILS_FRAG_TAG);
+
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        if (screenWidth <= 600) {
+            transaction.replace(R.id.main_fragment_container, mMovieDetailFragment, DETAILS_FRAG_TAG);
+        } else {
+            FrameLayout container = (FrameLayout) findViewById(R.id.detail_container);
+            Log.d(TAG, "Adding details fragment.");
+
+            if (detailsFragment != null && detailsFragment.isVisible()){
+                Log.d(TAG, "Details found, replacing");
+                transaction.replace(R.id.detail_container, mMovieDetailFragment, DETAILS_FRAG_TAG);
+            } else {
+                Log.d(TAG, "No details found, adding.");
+                transaction.add(R.id.detail_container, mMovieDetailFragment, DETAILS_FRAG_TAG);
+            }
+            container.setVisibility(View.VISIBLE);
+        }
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     @Override

@@ -23,6 +23,7 @@ import java.util.List;
  */
 public class Movie implements Parcelable, Serializable{
 
+    private String movieDbId;
     private String title;
     private String posterPath;
     private String overview;
@@ -31,6 +32,7 @@ public class Movie implements Parcelable, Serializable{
 
     private final static String TAG = "Movie";
     private final static String posterImageRootUrl = "http://image.tmdb.org/t/p/w185";
+    private final static String YOUTUBE_BASE_URL = "https://www.youtube.com/watch?v=";
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>(){
         @Override
@@ -47,6 +49,7 @@ public class Movie implements Parcelable, Serializable{
     public Movie() {}
 
     public Movie(Parcel in){
+        movieDbId = in.readString();
         title = in.readString();
         posterPath = in.readString();
         overview = in.readString();
@@ -61,11 +64,20 @@ public class Movie implements Parcelable, Serializable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(movieDbId);
         dest.writeString(title);
         dest.writeString(posterPath);
         dest.writeString(overview);
         dest.writeDouble(userRating);
         dest.writeLong(releaseDate.getTime());
+    }
+
+    public String getMovieDbId() {
+        return movieDbId;
+    }
+
+    public void setMovieDbId(String movieDbId) {
+        this.movieDbId = movieDbId;
     }
 
     public String getTitle() {
@@ -134,6 +146,7 @@ public class Movie implements Parcelable, Serializable{
         for (int i = 0; i < jsonMovieList.length(); i++){
             JSONObject jsonMovie = jsonMovieList.getJSONObject(i);
             Movie movie = new Movie();
+            movie.setMovieDbId(jsonMovie.getString("id"));
             movie.setTitle(jsonMovie.getString("title"));
             movie.setOverview(jsonMovie.getString("overview"));
             movie.setPosterPath(jsonMovie.getString("poster_path"));
@@ -155,4 +168,16 @@ public class Movie implements Parcelable, Serializable{
         return movieList;
     }
 
+    public static String[] getTrailersUrlsFromJson(String json) throws JSONException{
+        JSONObject envelope = new JSONObject(json);
+        JSONArray jsonTrailerList = envelope.getJSONArray("results");
+
+        String[] trailerUrls = new String[jsonTrailerList.length()];
+        Log.d(TAG, "Number of trailers: " + trailerUrls.length);
+        for(int i = 0; i < jsonTrailerList.length(); i++){
+            JSONObject trailer = jsonTrailerList.getJSONObject(i);
+            trailerUrls[i] = YOUTUBE_BASE_URL + trailer.getString("key");
+        }
+        return trailerUrls;
+    }
 }

@@ -48,19 +48,42 @@ public class MovieFetcher {
         List<Movie> movies = null;
         try{
             Response response = service.getMovies(params);
-            TypedByteArray byteArray = (TypedByteArray) response.getBody();
-            String jsonString = new String(byteArray.getBytes());
-
+            String jsonString = convertResponseToString(response);
             movies = Movie.getMoviesFromJson(jsonString);
         } catch (RetrofitError re){
             Log.e(TAG, re.getMessage() + ": " + re.getUrl());
             movies = null;
         } catch (JSONException je){
-            Log.e(TAG, je.getMessage());
+            Log.e(TAG, "Can't parse movies: " + je.getMessage());
             movies = null;
         }
 
         return movies == null ? new ArrayList<Movie>() : movies;
+    }
+
+    public static String[] getTrailerUrlsFromService(String movieId){
+        MovieWebService service = REST_ADAPTER.create(MovieWebService.class);
+
+        String[] urls = null;
+        try{
+            Response response = service.getTrailers(movieId, MOVIE_DB_API_KEY);
+            Log.d(TAG, "Trailer response = " + response.getStatus());
+            String jsonString = convertResponseToString(response);
+            urls = Movie.getTrailersUrlsFromJson(jsonString);
+        } catch (RetrofitError re){
+            Log.e(TAG, re.getMessage() + ": " + re.getUrl());
+        } catch (JSONException je){
+            Log.e(TAG, "Can't parse trailers: " + je.getMessage());
+        }
+        return urls == null ? new String[0] : urls;
+    }
+
+    private static String convertResponseToString (Response response){
+        if (response.getBody() == null){
+            return "";
+        }
+        TypedByteArray byteArray = (TypedByteArray) response.getBody();
+        return new String(byteArray.getBytes());
     }
 
 }

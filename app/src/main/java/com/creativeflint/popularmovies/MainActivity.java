@@ -23,7 +23,8 @@ import com.creativeflint.popularmovies.model.Movie;
  */
 public class MainActivity extends Activity
         implements MoviePosterFragment.OnMovieSelectedListener,
-        MoviePosterFragment.OnCommunicationErrorListener{
+        MoviePosterFragment.OnCommunicationErrorListener,
+        MovieDetailFragment.OnTrailersLoadedListener{
 
     private static final String TAG = "MovieActivity";
     private static final String POSTER_FRAG_TAG = "posters";
@@ -126,5 +127,14 @@ public class MainActivity extends Activity
         if (!alertDialog.isShowing()){
             alertDialog.show();
         }
+    }
+
+    @Override
+    public void onTrailersLoaded(String[] trailerUrls) {
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        for (String url : trailerUrls){
+            transaction.add(R.id.trailer_container, TrailerFragment.newInstance(url));
+        }
+        transaction.commit();
     }
 }

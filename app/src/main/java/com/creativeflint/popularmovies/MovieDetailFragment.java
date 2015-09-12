@@ -3,6 +3,11 @@
  */
 package com.creativeflint.popularmovies;
 
+import android.app.Activity;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -15,9 +20,12 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.creativeflint.popularmovies.model.Movie;
+import com.creativeflint.popularmovies.rest.MovieFetcher;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -29,6 +37,7 @@ public class MovieDetailFragment extends Fragment {
     private static final String POSTER_FRAG_TAG = "posters";
 
     private Movie mMovie;
+    private OnTrailersLoadedListener mOnTrailersLoadedListener;
 
     public static MovieDetailFragment newInstance(Movie movie) {
         MovieDetailFragment fragment = new MovieDetailFragment();
@@ -48,6 +57,7 @@ public class MovieDetailFragment extends Fragment {
         if (getArguments() != null) {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
+        new FetchTrailersTask().execute();
     }
 
     @Override
@@ -97,4 +107,52 @@ public class MovieDetailFragment extends Fragment {
 
 
     }
+
+    /**
+     * A background task to retrieve movies from the service URL
+     */
+    private class FetchTrailersTask extends AsyncTask<Void, Void, String[]> {
+
+        FetchTrailersTask(){
+        }
+
+        @Override
+        protected void onPostExecute(String[] urls) {
+            super.onPostExecute(urls);
+            Log.d(TAG, "Returned " + urls.length + " trailer urls.");
+            mOnTrailersLoadedListener.onTrailersLoaded(urls);
+        }
+
+        @Override
+        protected String[] doInBackground(Void... params) {
+            Log.d(TAG, "Making network call");
+            ConnectivityManager conManager = (ConnectivityManager) getActivity()
+                    .getApplicationContext()
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo network = conManager.getActiveNetworkInfo();
+            if (network == null || !network.isConnectedOrConnecting()){
+                return new String[0];
+            }
+            Log.d(TAG, "Getting trailers for " + mMovie.getTitle()
+                    + "(" + mMovie.getMovieDbId() + ")");
+            return MovieFetcher.getTrailerUrlsFromService(mMovie.getMovieDbId());
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mOnTrailersLoadedListener = (OnTrailersLoadedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnTrailersLoadedListener");
+        }
+    }
+
+    public interface OnTrailersLoadedListener{
+        public void onTrailersLoaded(String[] trailerUrls);
+    }
+
+
 }

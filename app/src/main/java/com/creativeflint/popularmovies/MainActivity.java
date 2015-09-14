@@ -13,10 +13,12 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.creativeflint.popularmovies.model.Movie;
+import com.creativeflint.popularmovies.model.Review;
+
+import java.util.List;
 
 /**
  * Main activity for the Popular Movies app
@@ -24,7 +26,7 @@ import com.creativeflint.popularmovies.model.Movie;
 public class MainActivity extends Activity
         implements MoviePosterFragment.OnMovieSelectedListener,
         MoviePosterFragment.OnCommunicationErrorListener,
-        MovieDetailFragment.OnTrailersLoadedListener{
+        MovieDetailFragment.OnDataLoadedListener {
 
     private static final String TAG = "MovieActivity";
     private static final String POSTER_FRAG_TAG = "posters";
@@ -108,7 +110,7 @@ public class MainActivity extends Activity
         builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (mMoviePosterFragment == null){
+                if (mMoviePosterFragment == null) {
                     mMoviePosterFragment = new MoviePosterFragment();
                 }
 
@@ -134,6 +136,16 @@ public class MainActivity extends Activity
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         for (String url : trailerUrls){
             transaction.add(R.id.trailer_container, TrailerFragment.newInstance(url));
+        }
+        transaction.commit();
+    }
+
+    @Override
+    public void onReviewsLoaded(List<Review> reviews){
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        for (Review review : reviews){
+            transaction.add(R.id.reviews_container, ReviewsFragment.newInstance(review.getAuthor(),
+                    review.getContent()));
         }
         transaction.commit();
     }

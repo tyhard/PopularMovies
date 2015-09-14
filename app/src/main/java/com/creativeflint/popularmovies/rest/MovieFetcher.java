@@ -3,6 +3,7 @@ package com.creativeflint.popularmovies.rest;
 import android.util.Log;
 
 import com.creativeflint.popularmovies.model.Movie;
+import com.creativeflint.popularmovies.model.Review;
 
 import org.json.JSONException;
 
@@ -84,6 +85,23 @@ public class MovieFetcher {
         }
         TypedByteArray byteArray = (TypedByteArray) response.getBody();
         return new String(byteArray.getBytes());
+    }
+
+    public static List<Review> getReviewsFromService(String movieId){
+        MovieWebService service = REST_ADAPTER.create(MovieWebService.class);
+
+        List<Review> reviews = null;
+        try{
+            Response response = service.getReviews(movieId, MOVIE_DB_API_KEY);
+            Log.d(TAG, "Reviews response: " + response.getStatus());
+            String jsonString = convertResponseToString(response);
+            reviews = Review.getReviewsFromJson(jsonString);
+        } catch (RetrofitError re){
+            Log.e(TAG, re.getMessage() + ": " + re.getUrl());
+        } catch (JSONException je){
+            Log.e(TAG, "Can't parse reviews: " + je.getMessage());
+        }
+        return reviews == null ? new ArrayList<Review>() : reviews;
     }
 
 }

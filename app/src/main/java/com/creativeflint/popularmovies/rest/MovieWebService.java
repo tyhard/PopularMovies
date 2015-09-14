@@ -17,4 +17,7 @@ public interface MovieWebService {
 
     @GET("/3/movie/{id}/videos")
     Response getTrailers(@Path("id") String movieId, @Query("api_key") String apiKey);
+
+    @GET("/3/movie/{id}/reviews")
+    Response getReviews(@Path("id") String movieId, @Query("api_key") String apiKey);
 }

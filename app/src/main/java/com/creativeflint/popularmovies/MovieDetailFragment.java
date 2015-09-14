@@ -20,6 +20,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.creativeflint.popularmovies.model.Movie;
+import com.creativeflint.popularmovies.model.Review;
 import com.creativeflint.popularmovies.rest.MovieFetcher;
 import com.squareup.picasso.Picasso;
 
@@ -37,7 +38,7 @@ public class MovieDetailFragment extends Fragment {
     private static final String POSTER_FRAG_TAG = "posters";
 
     private Movie mMovie;
-    private OnTrailersLoadedListener mOnTrailersLoadedListener;
+    private OnDataLoadedListener mOnTrailersLoadedListener;
 
     public static MovieDetailFragment newInstance(Movie movie) {
         MovieDetailFragment fragment = new MovieDetailFragment();
@@ -58,6 +59,7 @@ public class MovieDetailFragment extends Fragment {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
         }
         new FetchTrailersTask().execute();
+        new FetchReviewsTask().execute();
     }
 
     @Override
@@ -109,7 +111,7 @@ public class MovieDetailFragment extends Fragment {
     }
 
     /**
-     * A background task to retrieve movies from the service URL
+     * A background task to retrieve trailers from the service URL
      */
     private class FetchTrailersTask extends AsyncTask<Void, Void, String[]> {
 
@@ -139,19 +141,45 @@ public class MovieDetailFragment extends Fragment {
         }
     }
 
+    private class FetchReviewsTask extends AsyncTask<Void, Void, List<Review>> {
+
+        @Override
+        protected List<Review> doInBackground(Void... params) {
+            Log.d(TAG, "Making network call");
+            ConnectivityManager conManager = (ConnectivityManager) getActivity()
+                    .getApplicationContext()
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo network = conManager.getActiveNetworkInfo();
+            if (network == null || !network.isConnectedOrConnecting()){
+                return new ArrayList<>();
+            }
+            Log.d(TAG, "Getting reviews for " + mMovie.getTitle()
+                    + "(" + mMovie.getMovieDbId() + ")");
+            return MovieFetcher.getReviewsFromService(mMovie.getMovieDbId());
+        }
+
+        @Override
+        protected void onPostExecute(List<Review> reviews) {
+            super.onPostExecute(reviews);
+            Log.d(TAG, "Returned " + reviews.size() + " reviews.");
+            mOnTrailersLoadedListener.onReviewsLoaded(reviews);
+        }
+    }
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mOnTrailersLoadedListener = (OnTrailersLoadedListener) activity;
+            mOnTrailersLoadedListener = (OnDataLoadedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnTrailersLoadedListener");
+                    + " must implement OnDataLoadedListener");
         }
     }
 
-    public interface OnTrailersLoadedListener{
+    public interface OnDataLoadedListener {
         public void onTrailersLoaded(String[] trailerUrls);
+        public void onReviewsLoaded(List<Review> reviews);
     }
 
 

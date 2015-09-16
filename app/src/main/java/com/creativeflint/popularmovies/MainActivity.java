@@ -12,6 +12,8 @@ import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -99,6 +101,18 @@ public class MainActivity extends Activity
         getFragmentManager().putFragment(outState, POSTER_FRAG_TAG, mMoviePosterFragment);
         Log.d(TAG, "Saving fragment: " + getFragmentManager().getFragment(outState, POSTER_FRAG_TAG));
     }
+
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        super.onCreateOptionsMenu(menu);
+//        MenuItem shareItem = menu.findItem(R.id.share_item);
+//        if(mMovieDetailFragment != null && mMovieDetailFragment.isVisible()){
+//            shareItem.setVisible(true);
+//        } else {
+//            shareItem.setVisible(false);
+//        }
+//        return true;
+//    }
 
     @Override
     public void onCommunicationError() {

@@ -5,6 +5,7 @@ package com.creativeflint.popularmovies;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -12,11 +13,14 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
+import android.widget.ShareActionProvider;
 import android.widget.TextView;
 
 import com.creativeflint.popularmovies.model.Movie;
@@ -33,17 +37,20 @@ import java.util.List;
  * A fragment for displaying the details of a selected movie.
  */
 public class MovieDetailFragment extends Fragment {
-    private static final String MOVIE_PARAM = "MOVIE";
+    private static final String MOVIE_KEY = "MOVIE";
     private static final String TAG = "MovieDetailFragment";
     private static final String POSTER_FRAG_TAG = "posters";
+    private static final String TRAILERS_URL_KEY = "trailers";
 
     private Movie mMovie;
+    private String[] mTrailerUrls;
     private OnDataLoadedListener mOnTrailersLoadedListener;
+    private ShareActionProvider mShareActionProvider;
 
     public static MovieDetailFragment newInstance(Movie movie) {
         MovieDetailFragment fragment = new MovieDetailFragment();
         Bundle args = new Bundle();
-        args.putSerializable(MOVIE_PARAM, movie);
+        args.putSerializable(MOVIE_KEY, movie);
         fragment.setArguments(args);
         return fragment;
     }
@@ -55,9 +62,15 @@ public class MovieDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mMovie = (Movie) getArguments().getSerializable(MOVIE_PARAM);
+        if (savedInstanceState != null){
+            mTrailerUrls = savedInstanceState.getStringArray(TRAILERS_URL_KEY);
+            mMovie = (Movie) savedInstanceState.get(MOVIE_KEY);
         }
+        if (getArguments() != null && mMovie == null) {
+            mMovie = (Movie) getArguments().getSerializable(MOVIE_KEY);
+        }
+
+        setHasOptionsMenu(true);
         new FetchTrailersTask().execute();
         new FetchReviewsTask().execute();
     }
@@ -91,8 +104,20 @@ public class MovieDetailFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(MOVIE_PARAM, mMovie);
+        outState.putSerializable(MOVIE_KEY, mMovie);
         Log.d(TAG, "Saving Bundle: " + outState);
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_details, menu);
+        MenuItem shareItem = menu.findItem(R.id.share_item);
+        Log.d(TAG, "SHARE ITEM:" + shareItem);
+        mShareActionProvider = (ShareActionProvider) shareItem.getActionProvider();
+//        if (mTrailerUrls != null)
+//        setShareIntent(mTrailerUrls[0]);
 
     }
 
@@ -106,8 +131,21 @@ public class MovieDetailFragment extends Fragment {
         } else {
             return super.onOptionsItemSelected(item);
         }
+    }
 
-
+    private void setShareIntent(String trailerUrl){
+        if (trailerUrl != null && !trailerUrl.isEmpty()) {
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            //TODO: add string resources
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "Checkout the " + "'" + mMovie.getTitle() +
+                    "' " + "movie trailer.\n" + trailerUrl);
+            sendIntent.setType("text/plain");
+            if (mShareActionProvider != null){
+                mShareActionProvider.setShareIntent(Intent.createChooser(sendIntent,
+                        "Send Trailer to..."));
+            }
+        }
     }
 
     /**
@@ -123,6 +161,10 @@ public class MovieDetailFragment extends Fragment {
             super.onPostExecute(urls);
             Log.d(TAG, "Returned " + urls.length + " trailer urls.");
             mOnTrailersLoadedListener.onTrailersLoaded(urls);
+            mTrailerUrls = urls;
+            if (urls.length > 0){
+                setShareIntent(urls[0]);
+            }
         }
 
         @Override

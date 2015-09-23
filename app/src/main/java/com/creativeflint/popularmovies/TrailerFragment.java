@@ -1,8 +1,6 @@
 package com.creativeflint.popularmovies;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,7 +26,7 @@ import java.util.List;
 public class TrailerFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_TRAILER_URL = "trailerUrl";
+    private static final String TRAILER_URL = "trailerUrl";
     private static final String TAG = "TrailerFragment";
 
     // TODO: Rename and change types of parameters
@@ -40,7 +38,7 @@ public class TrailerFragment extends Fragment {
     public static TrailerFragment newInstance(String trailerUrl) {
         TrailerFragment fragment = new TrailerFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_TRAILER_URL, trailerUrl);
+        args.putString(TRAILER_URL, trailerUrl);
         fragment.setArguments(args);
         return fragment;
     }
@@ -52,16 +50,20 @@ public class TrailerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mTrailerUrl = getArguments().getString(ARG_TRAILER_URL);
+        if (savedInstanceState != null){
+            mTrailerUrl = savedInstanceState.getString(TRAILER_URL);
         }
+        if (mTrailerUrl == null && getArguments() != null) {
+            mTrailerUrl = getArguments().getString(TRAILER_URL);
+        }
+        setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         if (savedInstanceState != null){
-            mTrailerUrl = (String) savedInstanceState.get(ARG_TRAILER_URL);
+            mTrailerUrl = (String) savedInstanceState.get(TRAILER_URL);
         }
 
         // Inflate the layout for this fragment
@@ -86,4 +88,9 @@ public class TrailerFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(TRAILER_URL, mTrailerUrl);
+    }
 }

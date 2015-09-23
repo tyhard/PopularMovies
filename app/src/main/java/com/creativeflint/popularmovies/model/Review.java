@@ -1,5 +1,8 @@
 package com.creativeflint.popularmovies.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,7 +13,7 @@ import java.util.List;
 /**
  * Created by Ty on 9/13/2015.
  */
-public class Review {
+public class Review implements Parcelable{
     private String author;
     private String content;
 
@@ -22,6 +25,23 @@ public class Review {
         this.author = author;
         this.content = content;
     }
+
+    Review(Parcel in){
+        this.author = in.readString();
+        this.content = in.readString();
+    }
+
+    public static final Parcelable.Creator<Review> CREATOR = new Parcelable.Creator<Review>(){
+        @Override
+        public Review createFromParcel(Parcel in){
+            return new Review(in);
+        }
+
+        @Override
+        public Review[] newArray(int size) {
+            return new Review[size];
+        }
+    };
 
     public String getContent() {
         return content;
@@ -50,5 +70,16 @@ public class Review {
         }
         return reviews;
 
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(author);
+        dest.writeString(content);
     }
 }

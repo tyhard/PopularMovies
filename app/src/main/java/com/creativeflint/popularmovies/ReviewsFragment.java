@@ -40,10 +40,15 @@ public class ReviewsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null){
+            mAuthor = savedInstanceState.getString(AUTHOR_ARG);
+            mContent = savedInstanceState.getString(CONTENT_ARG);
+        }
         if (getArguments() != null) {
             mAuthor = getArguments().getString(AUTHOR_ARG);
             mContent = getArguments().getString(CONTENT_ARG);
         }
+
     }
 
     @Override
@@ -61,5 +66,10 @@ public class ReviewsFragment extends Fragment {
 
     }
 
-
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(AUTHOR_ARG, mAuthor);
+        outState.putString(CONTENT_ARG, mContent);
+    }
 }

@@ -6,11 +6,13 @@ package com.creativeflint.popularmovies;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,10 +20,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.creativeflint.popularmovies.model.Movie;
 import com.creativeflint.popularmovies.model.Review;
@@ -30,7 +38,11 @@ import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -41,11 +53,14 @@ public class MovieDetailFragment extends Fragment {
     private static final String TAG = "MovieDetailFragment";
     private static final String POSTER_FRAG_TAG = "posters";
     private static final String TRAILERS_URL_KEY = "trailers";
+    private static final String REVIEWS_KEY = "reviews";
 
     private Movie mMovie;
     private String[] mTrailerUrls;
+    private List<Review> mReviews;
     private OnDataLoadedListener mOnTrailersLoadedListener;
     private ShareActionProvider mShareActionProvider;
+//    private ArrayAdapter<String> mTrailerAdapter;
 
     public static MovieDetailFragment newInstance(Movie movie) {
         MovieDetailFragment fragment = new MovieDetailFragment();
@@ -65,14 +80,20 @@ public class MovieDetailFragment extends Fragment {
         if (savedInstanceState != null){
             mTrailerUrls = savedInstanceState.getStringArray(TRAILERS_URL_KEY);
             mMovie = (Movie) savedInstanceState.get(MOVIE_KEY);
+            mReviews = savedInstanceState.getParcelableArrayList(REVIEWS_KEY);
         }
         if (getArguments() != null && mMovie == null) {
             mMovie = (Movie) getArguments().getSerializable(MOVIE_KEY);
         }
 
         setHasOptionsMenu(true);
-        new FetchTrailersTask().execute();
-        new FetchReviewsTask().execute();
+        if (mTrailerUrls == null || mTrailerUrls.length == 0){
+            new FetchTrailersTask().execute();
+        }
+        if (mReviews == null){
+            new FetchReviewsTask().execute();
+        }
+
     }
 
     @Override
@@ -93,6 +114,16 @@ public class MovieDetailFragment extends Fragment {
         TextView plotSummary = (TextView) detailView.findViewById(R.id.plot_summary_text);
         plotSummary.setText(mMovie.getOverview());
 
+        CheckBox favoriteButton = (CheckBox) detailView.findViewById(R.id.favorite_button);
+        favoriteButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    saveMovieAsFavorite(mMovie);
+                }
+            }
+        });
+
         ImageView moviePoster = (ImageView) detailView.findViewById(R.id.movie_poster_view);
         Picasso.with(getActivity().getApplicationContext())
                 .load(mMovie.getPosterPath())
@@ -101,12 +132,34 @@ public class MovieDetailFragment extends Fragment {
         return detailView;
     }
 
+    private void saveMovieAsFavorite(Movie movie) {
+        Toast.makeText(getActivity().getApplicationContext(),
+                "Saving " + movie.getTitle(), Toast.LENGTH_SHORT).show();
+        SharedPreferences.Editor prefsEditor = getActivity()
+                .getPreferences(Context.MODE_PRIVATE).edit();
+        prefsEditor.putString("Movie_" + movie.getMovieDbId(), movie.getMovieDbId());
+        prefsEditor.commit();
+    }
+
+    private List<String> getSavedFavoriteMoviesIds(){
+        SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
+        Map<String, ?> allPrefs = prefs.getAll();
+        List<String> movieIds = new ArrayList<>();
+        for (String key : allPrefs.keySet()){
+            if (key.startsWith("Movie_")) {
+                movieIds.add(prefs.getString(key, null));
+            }
+        }
+        return movieIds;
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(MOVIE_KEY, mMovie);
+        outState.putStringArray(TRAILERS_URL_KEY, mTrailerUrls);
+        outState.putParcelableArrayList(REVIEWS_KEY, (ArrayList<Review>) mReviews);
         Log.d(TAG, "Saving Bundle: " + outState);
-
     }
 
     @Override
@@ -142,8 +195,7 @@ public class MovieDetailFragment extends Fragment {
                     "' " + "movie trailer.\n" + trailerUrl);
             sendIntent.setType("text/plain");
             if (mShareActionProvider != null){
-                mShareActionProvider.setShareIntent(Intent.createChooser(sendIntent,
-                        "Send Trailer to..."));
+                mShareActionProvider.setShareIntent(sendIntent);
             }
         }
     }
@@ -162,14 +214,16 @@ public class MovieDetailFragment extends Fragment {
             Log.d(TAG, "Returned " + urls.length + " trailer urls.");
             mOnTrailersLoadedListener.onTrailersLoaded(urls);
             mTrailerUrls = urls;
+
             if (urls.length > 0){
                 setShareIntent(urls[0]);
+//                mTrailerAdapter.addAll(Arrays.asList(urls));
             }
         }
 
         @Override
         protected String[] doInBackground(Void... params) {
-            Log.d(TAG, "Making network call");
+            Log.d(TAG, "Making network call - Trailers");
             ConnectivityManager conManager = (ConnectivityManager) getActivity()
                     .getApplicationContext()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -187,7 +241,7 @@ public class MovieDetailFragment extends Fragment {
 
         @Override
         protected List<Review> doInBackground(Void... params) {
-            Log.d(TAG, "Making network call");
+            Log.d(TAG, "Making network call - Reviews");
             ConnectivityManager conManager = (ConnectivityManager) getActivity()
                     .getApplicationContext()
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -205,6 +259,7 @@ public class MovieDetailFragment extends Fragment {
             super.onPostExecute(reviews);
             Log.d(TAG, "Returned " + reviews.size() + " reviews.");
             mOnTrailersLoadedListener.onReviewsLoaded(reviews);
+            mReviews = reviews;
         }
     }
 
